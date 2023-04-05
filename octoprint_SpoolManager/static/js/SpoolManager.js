@@ -941,7 +941,7 @@ $(function() {
             // assign current pluginSettings
             self.pluginSettings = self.settingsViewModel.settings.plugins[PLUGIN_ID];
             // load browser stored settings (includs TabelVisibility and pageSize, ...)
-            loadSettingsFromBrowserStore();
+            loadSettingsFromBrowserStore(self);
 
             // resetSettings-Stuff
             new ResetSettingsUtilV3(self.pluginSettings).assignResetSettingsFeature(PLUGIN_ID, function(data) {
