@@ -90,6 +90,9 @@ $(function() {
     function SpoolManagerViewModel(parameters) {
         var self = this;
 
+        // TODO: Experimental, remove once experiments are done
+        window.spoolManager = self;
+
         // assign the injected parameters, e.g.:
         self.loginStateViewModel = parameters[0];
         self.loginState = parameters[0];
