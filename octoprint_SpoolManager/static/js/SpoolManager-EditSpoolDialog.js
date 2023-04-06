@@ -1,5 +1,6 @@
 // Dialog functionality
-function SpoolManagerEditSpoolDialog(){
+function SpoolManagerEditSpoolDialog(props){
+    const { managerViewModel } = props;
 
     var self = this;
 
@@ -933,15 +934,27 @@ function SpoolManagerEditSpoolDialog(){
         });
     }
 
-    self.deleteSpoolItem = function(){
-        var result = confirm("Do you really want to delete this spool?");
-        if (result == true){
-            self.apiClient.callDeleteSpool(self.spoolItemForEditing.databaseId(), function(responseData) {
-                self.spoolItemForEditing.isSpoolVisible(false);
-                self.spoolDialog.modal('hide');
-                self.closeDialogHandler(true);
-            });
+    self.deleteSpoolItem = async function() {
+        const hasConfirmed = confirm("Do you really want to delete this spool?");
+
+        if (!hasConfirmed) {
+            return;
         }
+
+        const callResult = await self.apiClient.callDeleteSpool(self.spoolItemForEditing.databaseId());
+
+        if (!callResult.isSuccess) {
+            return managerViewModel.showPopUp(
+                "error",
+                'ERROR: Delete Spool',
+                'Could not delete selected spool',
+                true,
+            );
+        }
+
+        self.spoolItemForEditing.isSpoolVisible(false);
+        self.spoolDialog.modal('hide');
+        self.closeDialogHandler(true);
     }
 
     self.selectSpoolItemForPrinting = function(){

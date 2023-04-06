@@ -104,7 +104,9 @@ $(function() {
         self.pluginSettings = null;
 
         self.apiClient = new SpoolManagerAPIClient(PLUGIN_ID, BASEURL);
-        self.spoolDialog = new SpoolManagerEditSpoolDialog();
+        self.spoolDialog = new SpoolManagerEditSpoolDialog({
+            managerViewModel: self,
+        });
 
 
         //////////////////////////////////////////////////////////////////////////////////////////////// HELPER FUNCTION

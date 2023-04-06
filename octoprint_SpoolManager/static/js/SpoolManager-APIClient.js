@@ -211,15 +211,15 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////// DELETE Spool-Item
-    this.callDeleteSpool = function (databaseId, responseHandler){
-        $.ajax({
-            //url: API_BASEURL + "plugin/"+PLUGIN_ID+"/loadPrintJobHistory",
-            url: this.baseUrl + "plugin/" + this.pluginId + "/deleteSpool/" + databaseId,
-            type: "DELETE"
-        }).always(function( data ){
-            responseHandler();
-        });
-    }
+    const callDeleteSpool = safeAsync(async (spoolDbId) => {
+        return callApi(
+            `deleteSpool/${spoolDbId}`,
+            {
+                method: "DELETE",
+            },
+        );
+    });
+    this.callDeleteSpool = callDeleteSpool;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////// SELECT Spool-Item
     this.callSelectSpool = function (toolIndex, databaseId, commitCurrentSpoolValues, responseHandler){
