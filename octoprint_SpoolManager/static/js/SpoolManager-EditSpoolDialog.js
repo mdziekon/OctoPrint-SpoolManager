@@ -954,7 +954,7 @@ function SpoolManagerEditSpoolDialog(props){
         if (!callResult.isSuccess) {
             return managerViewModel.showPopUp(
                 "error",
-                'ERROR: Delete Spool',
+                'Delete Spool',
                 'Could not delete selected spool',
                 true,
             );
