@@ -195,20 +195,21 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
 
 
     //////////////////////////////////////////////////////////////////////////////////////////////////// SAVE Spool-Item
-    this.callSaveSpool = function (spoolItem, responseHandler){
-        jsonPayload = ko.toJSON(spoolItem)
+    const callSaveSpool = safeAsync(async (spoolItem) => {
+        const jsonPayload = ko.toJSON(spoolItem);
 
-        $.ajax({
-            //url: API_BASEURL + "plugin/"+PLUGIN_ID+"/loadPrintJobHistory",
-            url: this.baseUrl + "plugin/" + this.pluginId + "/saveSpool",
-            dataType: "json",
-            contentType: "application/json; charset=UTF-8",
-            data: jsonPayload,
-            type: "PUT"
-        }).always(function( data ){
-            responseHandler();
-        });
-    }
+        return callApi(
+            "saveSpool",
+            {
+                type: "PUT",
+                headers: {
+                    'Content-Type': "application/json; charset=UTF-8",
+                },
+                body: jsonPayload,
+            },
+        );
+    });
+    this.callSaveSpool = callSaveSpool;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////// DELETE Spool-Item
     const callDeleteSpool = safeAsync(async (spoolDbId) => {

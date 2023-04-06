@@ -901,7 +901,7 @@ function SpoolManagerEditSpoolDialog(props){
         self.spoolItemForEditing.isSpoolVisible(true);
     }
 
-    self.saveSpoolItem = function(){
+    self.saveSpoolItem = async function() {
 
         // Input validation
         var displayName = self.spoolItemForEditing.displayName();
@@ -926,12 +926,20 @@ function SpoolManagerEditSpoolDialog(props){
 //        self.printJobItemForEdit.noteDeltaFormat(noteDeltaFormat);
 //        self.printJobItemForEdit.noteHtml(noteHtml);
 //
-        self.apiClient.callSaveSpool(self.spoolItemForEditing, function(allPrintJobsResponse){
-            self.spoolItemForEditing.isSpoolVisible(false);
-            self.spoolDialog.modal('hide');
-            // var specialCloseAction = self.isExistingSpool() == false ? "saveNewSpool"
-            self.closeDialogHandler(true, "save");
-        });
+        const callResult = await self.apiClient.callSaveSpool(self.spoolItemForEditing);
+
+        if (!callResult.isSuccess) {
+            return managerViewModel.showPopUp(
+                "error",
+                'Save Spool',
+                'Could not save the spool',
+                true,
+            );
+        }
+
+        self.spoolItemForEditing.isSpoolVisible(false);
+        self.spoolDialog.modal('hide');
+        self.closeDialogHandler(true, "save");
     }
 
     self.deleteSpoolItem = async function() {
