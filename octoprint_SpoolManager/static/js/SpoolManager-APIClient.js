@@ -41,6 +41,92 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
         return _addApiKeyIfNecessary("./plugin/" + this.pluginId + "/sampleCSV");
     }
 
+    const buildApiUrl = (url) => {
+        return `${this.baseUrl}plugin/${this.pluginId}/${url}`;
+    };
+
+    /**
+     * @template PayloadType
+     * @param {PayloadType} payload
+     */
+    const createSuccess = (payload) => {
+        return {
+            /**
+             * @type true
+             */
+            isSuccess: true,
+            payload,
+        };
+    };
+    /**
+     * @template ErrorType
+     * @param {ErrorType} error
+     */
+    const createFailure = (error) => {
+        return {
+            /**
+             * @type false
+             */
+            isSuccess: false,
+            error,
+        };
+    };
+
+    /**
+     * @template {unknown[]} AsyncArgs
+     * @template AsyncResult
+     * @param {(...args: AsyncArgs) => Promise<AsyncResult>} asyncFn
+     */
+    const safeAsync = (asyncFn) => {
+        /**
+         * @param {AsyncArgs} args
+         */
+        const callAsync = async (...args) => {
+            try {
+                return await asyncFn(...args);
+            } catch (error) {
+                return createFailure({
+                    type: "UNKNOWN",
+                    errorObj: error,
+                });
+            }
+        };
+
+        return callAsync;
+    };
+
+    const callApi = async (url, options) => {
+        const endpointUrl = buildApiUrl(url);
+        const request = await fetch(endpointUrl, options);
+
+        if (!request.ok) {
+            return createFailure({
+                type: "REQUEST_FAILED",
+            });
+        }
+
+        const response = await ((async () => {
+            if (request.headers.get('Content-Type') !== 'application/json') {
+                return;
+            }
+
+            try {
+                /**
+                 * @type unknown
+                 */
+                const responseJSON = await request.json();
+
+                return responseJSON;
+            } catch (error) {
+                return;
+            }
+        }))();
+
+        return createSuccess({
+            response,
+        });
+    };
+
     //////////////////////////////////////////////////////////////////////////////// LOAD AdditionalSettingsValues
     this.callAdditionalSettings = function (responseHandler){
         var urlToCall = this.baseUrl + "api/plugin/"+this.pluginId+"?action=additionalSettingsValues";
