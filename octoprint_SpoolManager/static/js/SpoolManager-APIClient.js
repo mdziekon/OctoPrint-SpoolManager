@@ -201,7 +201,7 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
         return callApi(
             "saveSpool",
             {
-                type: "PUT",
+                method: "PUT",
                 headers: {
                     'Content-Type': "application/json; charset=UTF-8",
                 },
