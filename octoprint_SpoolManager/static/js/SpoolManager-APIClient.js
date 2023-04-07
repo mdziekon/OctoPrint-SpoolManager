@@ -1,4 +1,68 @@
+/**
+ * @template PayloadType
+ * @typedef {{
+ *  isSuccess: true,
+ *  payload: PayloadType,
+ * }} Success
+ */
+/**
+ * @template ErrorType
+ * @typedef {{
+ *  isSuccess: false,
+ *  error: ErrorType,
+ * }} Failure
+ */
 
+/**
+ * @template PayloadType
+ * @param {PayloadType} payload
+ * @returns {Success<PayloadType>}
+ */
+const createSuccess = (payload) => {
+    return {
+        isSuccess: true,
+        payload,
+    };
+};
+/**
+ * @template ErrorType
+ * @param {ErrorType} error
+ * @returns {Failure<ErrorType>}
+ */
+const createFailure = (error) => {
+    return {
+        isSuccess: false,
+        error,
+    };
+};
+
+const ASYNC_FN_FAIL_ERROR = "ASYNC_FN_FAILED";
+
+/**
+ * @template {unknown[]} AsyncArgs
+ * @template AsyncResult
+ * @param {(...args: AsyncArgs) => Promise<AsyncResult>} asyncFn
+ */
+const safeAsync = (asyncFn) => {
+    /**
+     * @param {AsyncArgs} args
+     */
+    const callAsync = async (...args) => {
+        try {
+            return await asyncFn(...args);
+        } catch (error) {
+            return createFailure({
+                /**
+                 * @type {typeof ASYNC_FN_FAIL_ERROR}
+                 */
+                type: ASYNC_FN_FAIL_ERROR,
+                errorObj: error,
+            });
+        }
+    };
+
+    return callAsync;
+};
 
 function SpoolManagerAPIClient(pluginId, baseUrl) {
 
@@ -43,56 +107,6 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
 
     const buildApiUrl = (url) => {
         return `${this.baseUrl}plugin/${this.pluginId}/${url}`;
-    };
-
-    /**
-     * @template PayloadType
-     * @param {PayloadType} payload
-     */
-    const createSuccess = (payload) => {
-        return {
-            /**
-             * @type true
-             */
-            isSuccess: true,
-            payload,
-        };
-    };
-    /**
-     * @template ErrorType
-     * @param {ErrorType} error
-     */
-    const createFailure = (error) => {
-        return {
-            /**
-             * @type false
-             */
-            isSuccess: false,
-            error,
-        };
-    };
-
-    /**
-     * @template {unknown[]} AsyncArgs
-     * @template AsyncResult
-     * @param {(...args: AsyncArgs) => Promise<AsyncResult>} asyncFn
-     */
-    const safeAsync = (asyncFn) => {
-        /**
-         * @param {AsyncArgs} args
-         */
-        const callAsync = async (...args) => {
-            try {
-                return await asyncFn(...args);
-            } catch (error) {
-                return createFailure({
-                    type: "UNKNOWN",
-                    errorObj: error,
-                });
-            }
-        };
-
-        return callAsync;
     };
 
     const callApi = async (url, options) => {
