@@ -1,5 +1,6 @@
 // Dialog functionality
-function SpoolManagerEditSpoolDialog(){
+function SpoolManagerEditSpoolDialog(props){
+    const { managerViewModel } = props;
 
     var self = this;
 
@@ -900,7 +901,7 @@ function SpoolManagerEditSpoolDialog(){
         self.spoolItemForEditing.isSpoolVisible(true);
     }
 
-    self.saveSpoolItem = function(){
+    self.saveSpoolItem = async function() {
 
         // Input validation
         var displayName = self.spoolItemForEditing.displayName();
@@ -925,23 +926,43 @@ function SpoolManagerEditSpoolDialog(){
 //        self.printJobItemForEdit.noteDeltaFormat(noteDeltaFormat);
 //        self.printJobItemForEdit.noteHtml(noteHtml);
 //
-        self.apiClient.callSaveSpool(self.spoolItemForEditing, function(allPrintJobsResponse){
-            self.spoolItemForEditing.isSpoolVisible(false);
-            self.spoolDialog.modal('hide');
-            // var specialCloseAction = self.isExistingSpool() == false ? "saveNewSpool"
-            self.closeDialogHandler(true, "save");
-        });
+        const callResult = await self.apiClient.callSaveSpool(self.spoolItemForEditing);
+
+        if (!callResult.isSuccess) {
+            return managerViewModel.showPopUp(
+                "error",
+                'Save Spool',
+                'Could not save the spool',
+                true,
+            );
+        }
+
+        self.spoolItemForEditing.isSpoolVisible(false);
+        self.spoolDialog.modal('hide');
+        self.closeDialogHandler(true, "save");
     }
 
-    self.deleteSpoolItem = function(){
-        var result = confirm("Do you really want to delete this spool?");
-        if (result == true){
-            self.apiClient.callDeleteSpool(self.spoolItemForEditing.databaseId(), function(responseData) {
-                self.spoolItemForEditing.isSpoolVisible(false);
-                self.spoolDialog.modal('hide');
-                self.closeDialogHandler(true);
-            });
+    self.deleteSpoolItem = async function() {
+        const hasConfirmed = confirm("Do you really want to delete this spool?");
+
+        if (!hasConfirmed) {
+            return;
         }
+
+        const callResult = await self.apiClient.callDeleteSpool(self.spoolItemForEditing.databaseId());
+
+        if (!callResult.isSuccess) {
+            return managerViewModel.showPopUp(
+                "error",
+                'Delete Spool',
+                'Could not delete selected spool',
+                true,
+            );
+        }
+
+        self.spoolItemForEditing.isSpoolVisible(false);
+        self.spoolDialog.modal('hide');
+        self.closeDialogHandler(true);
     }
 
     self.selectSpoolItemForPrinting = function(){

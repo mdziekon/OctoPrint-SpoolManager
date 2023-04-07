@@ -1,4 +1,68 @@
+/**
+ * @template PayloadType
+ * @typedef {{
+ *  isSuccess: true,
+ *  payload: PayloadType,
+ * }} Success
+ */
+/**
+ * @template ErrorType
+ * @typedef {{
+ *  isSuccess: false,
+ *  error: ErrorType,
+ * }} Failure
+ */
 
+/**
+ * @template PayloadType
+ * @param {PayloadType} payload
+ * @returns {Success<PayloadType>}
+ */
+const createSuccess = (payload) => {
+    return {
+        isSuccess: true,
+        payload,
+    };
+};
+/**
+ * @template ErrorType
+ * @param {ErrorType} error
+ * @returns {Failure<ErrorType>}
+ */
+const createFailure = (error) => {
+    return {
+        isSuccess: false,
+        error,
+    };
+};
+
+const ASYNC_FN_FAIL_ERROR = "ASYNC_FN_FAILED";
+
+/**
+ * @template {unknown[]} AsyncArgs
+ * @template AsyncResult
+ * @param {(...args: AsyncArgs) => Promise<AsyncResult>} asyncFn
+ */
+const safeAsync = (asyncFn) => {
+    /**
+     * @param {AsyncArgs} args
+     */
+    const callAsync = async (...args) => {
+        try {
+            return await asyncFn(...args);
+        } catch (error) {
+            return createFailure({
+                /**
+                 * @type {typeof ASYNC_FN_FAIL_ERROR}
+                 */
+                type: ASYNC_FN_FAIL_ERROR,
+                errorObj: error,
+            });
+        }
+    };
+
+    return callAsync;
+};
 
 function SpoolManagerAPIClient(pluginId, baseUrl) {
 
@@ -40,6 +104,42 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
     this.getSampleCSVUrl = function(){
         return _addApiKeyIfNecessary("./plugin/" + this.pluginId + "/sampleCSV");
     }
+
+    const buildApiUrl = (url) => {
+        return `${this.baseUrl}plugin/${this.pluginId}/${url}`;
+    };
+
+    const callApi = async (url, options) => {
+        const endpointUrl = buildApiUrl(url);
+        const request = await fetch(endpointUrl, options);
+
+        if (!request.ok) {
+            return createFailure({
+                type: "REQUEST_FAILED",
+            });
+        }
+
+        const response = await ((async () => {
+            if (request.headers.get('Content-Type') !== 'application/json') {
+                return;
+            }
+
+            try {
+                /**
+                 * @type unknown
+                 */
+                const responseJSON = await request.json();
+
+                return responseJSON;
+            } catch (error) {
+                return;
+            }
+        }))();
+
+        return createSuccess({
+            response,
+        });
+    };
 
     //////////////////////////////////////////////////////////////////////////////// LOAD AdditionalSettingsValues
     this.callAdditionalSettings = function (responseHandler){
@@ -109,31 +209,32 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
 
 
     //////////////////////////////////////////////////////////////////////////////////////////////////// SAVE Spool-Item
-    this.callSaveSpool = function (spoolItem, responseHandler){
-        jsonPayload = ko.toJSON(spoolItem)
+    const callSaveSpool = safeAsync(async (spoolItem) => {
+        const jsonPayload = ko.toJSON(spoolItem);
 
-        $.ajax({
-            //url: API_BASEURL + "plugin/"+PLUGIN_ID+"/loadPrintJobHistory",
-            url: this.baseUrl + "plugin/" + this.pluginId + "/saveSpool",
-            dataType: "json",
-            contentType: "application/json; charset=UTF-8",
-            data: jsonPayload,
-            type: "PUT"
-        }).always(function( data ){
-            responseHandler();
-        });
-    }
+        return callApi(
+            "saveSpool",
+            {
+                method: "PUT",
+                headers: {
+                    'Content-Type': "application/json; charset=UTF-8",
+                },
+                body: jsonPayload,
+            },
+        );
+    });
+    this.callSaveSpool = callSaveSpool;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////// DELETE Spool-Item
-    this.callDeleteSpool = function (databaseId, responseHandler){
-        $.ajax({
-            //url: API_BASEURL + "plugin/"+PLUGIN_ID+"/loadPrintJobHistory",
-            url: this.baseUrl + "plugin/" + this.pluginId + "/deleteSpool/" + databaseId,
-            type: "DELETE"
-        }).always(function( data ){
-            responseHandler();
-        });
-    }
+    const callDeleteSpool = safeAsync(async (spoolDbId) => {
+        return callApi(
+            `deleteSpool/${spoolDbId}`,
+            {
+                method: "DELETE",
+            },
+        );
+    });
+    this.callDeleteSpool = callDeleteSpool;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////// SELECT Spool-Item
     this.callSelectSpool = function (toolIndex, databaseId, commitCurrentSpoolValues, responseHandler){
@@ -206,19 +307,4 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
     this.getDownloadDatabaseUrl = function(exportType){
         return _addApiKeyIfNecessary("./plugin/" + this.pluginId + "/downloadDatabase");
     }
-
-//    // deactivate the Plugin/Check
-//    this.callDeactivatePluginCheck =  function (){
-//        $.ajax({
-//            url: this.baseUrl + "plugin/"+ this.pluginId +"/deactivatePluginCheck",
-//            type: "PUT"
-//        }).done(function( data ){
-//            //responseHandler(data)
-//        });
-//    }
-
-
-
-
-
 }

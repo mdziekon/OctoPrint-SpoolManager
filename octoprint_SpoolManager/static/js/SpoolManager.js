@@ -4,56 +4,90 @@
  * Author: OllisGit
  * License: AGPLv3
  */
- // START: TESTZONE
+// from setup.py plugin_identifier
+const PLUGIN_ID = "SpoolManager";
+const WEIGHT_UNIT_SYMBOL = "g";
+const DEFAULT_TABLE_PAGE_SIZE = 25;
 
- var expanded = false;
+const buildSpoolLabel = (item) => {
+    const remainingWeightInfo = (
+        (
+            item.remainingWeight != null &&
+            typeof item.remainingWeight === 'number'
+        )
+            ? `(${item.remainingWeight.toFixed(2)} ${WEIGHT_UNIT_SYMBOL})`
+            : undefined
+    );
 
-function showCheckboxes() {
+    const basicInfo = `${item.material} - ${item.spoolName}`;
+    const label = `${item.toolIndex}: '${basicInfo}${remainingWeightInfo ? ` ${remainingWeightInfo}` : ''}'`;
 
-  var checkboxes = document.getElementById("checkboxes");
-  if (!expanded) {
-    checkboxes.style.display = "block";
-    expanded = true;
-  } else {
-    checkboxes.style.display = "none";
-    expanded = false;
-  }
-}
-
-var data = [{
-   id: 0,
-   text: 'enhancement',
-	html: '<div class="pick-a-color-markup"><span class="color-preview" style="background-color: rgb(255, 255, 0);"></span>enhancement</div>'
-}, {
-   id: 1,
-   text: 'bug',
-	html: '<div style="color:red">bug</div><div><small>This is some small text on a new line</small></div>'
-}];
-
-function template(data) {
-	return data.html;
-}
-
-$("#colorFilter").select2({
-   data: data,
-   templateResult: template,
-   escapeMarkup: function(m) {
-      return m;
-   }
-});
-
- // END: TESTZONE
+    return label;
+};
 
 $(function() {
+    /**
+     * @param {SpoolManagerViewModel} viewModel
+     * @param {string} attributeName
+     */
+    const assignSpoolsTableColumnVisibility = (viewModel, attributeName) => {
+        const localStorageKey = `spoolmanager.table.visible.${attributeName}`;
+        const localStorageValue = localStorage[localStorageKey];
+        const attributeVisibilityObservable = viewModel.tableAttributeVisibility[attributeName];
 
-    var PLUGIN_ID = "SpoolManager"; // from setup.py plugin_identifier
+        if (localStorageValue == null) {
+            // Initialize localStorage with default value
+            localStorage[localStorageKey] = attributeVisibilityObservable();
+        } else {
+            const isVisible = "true" == localStorageValue;
 
+            attributeVisibilityObservable(isVisible);
+        }
+
+        attributeVisibilityObservable.subscribe(function(newValue) {
+            localStorage[localStorageKey] = newValue;
+        });
+    };
+
+    /**
+     * @param {SpoolManagerViewModel} viewModel
+     */
+    const initTableVisibilities = (viewModel) => {
+        if (!Modernizr.localstorage) {
+            return;
+        }
+
+        Object.keys(viewModel.tableAttributeVisibility).forEach((attributeName) => {
+            assignSpoolsTableColumnVisibility(viewModel, attributeName);
+        });
+    }
+
+    /**
+     * @param {SpoolManagerViewModel} viewModel
+     */
+    const loadSettingsFromBrowserStore = (viewModel) => {
+        if (!Modernizr.localstorage) {
+            return;
+        }
+
+        initTableVisibilities(viewModel);
+
+        const storageKey = "spoolmanager.table.selectedPageSize";
+
+        if (localStorage[storageKey] == null) {
+            // Initialize localStorage with default value
+            localStorage[storageKey] = `${DEFAULT_TABLE_PAGE_SIZE}`;
+        } else {
+            viewModel.spoolItemTableHelper.selectedPageSize(localStorage[storageKey]);
+        }
+
+        viewModel.spoolItemTableHelper.selectedPageSize.subscribe(function(newValue) {
+            localStorage[storageKey] = newValue;
+        });
+    }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////// VIEW MODEL
     function SpoolManagerViewModel(parameters) {
-
-        var PLUGIN_ID = "SpoolManager"; // from setup.py plugin_identifier
-
         var self = this;
 
         // assign the injected parameters, e.g.:
@@ -67,62 +101,44 @@ $(function() {
         self.pluginSettings = null;
 
         self.apiClient = new SpoolManagerAPIClient(PLUGIN_ID, BASEURL);
-        self.spoolDialog = new SpoolManagerEditSpoolDialog();
+        self.spoolDialog = new SpoolManagerEditSpoolDialog({
+            managerViewModel: self,
+        });
 
 
         //////////////////////////////////////////////////////////////////////////////////////////////// HELPER FUNCTION
+        const handleSpoolDialogClose = (shouldTableReload, specialAction, currentSpoolItem) => {
+            if (specialAction === "selectSpoolForPrinting") {
+                const spoolToolIdx = currentSpoolItem.selectedForTool() ?? -1;
 
-        loadSettingsFromBrowserStore = function(){
-            // TODO maybe in a separate js-file
-            // load all settings from browser storage
-            if (!Modernizr.localstorage) {
-                // damn!!!
-                return false;
+                self.selectSpoolForSidebar(spoolToolIdx, currentSpoolItem);
             }
-            // Table visibility
-            self.initTableVisibilities();
 
-            var storageKey = "spoolmanager.table.selectedPageSize";
-            if (localStorage[storageKey] == null){
-                localStorage[storageKey] = "25"; // default page size
-            } else {
-                self.spoolItemTableHelper.selectedPageSize(localStorage[storageKey]);
+            if (shouldTableReload == true) {
+                self.spoolItemTableHelper.reloadItems();
+                // TODO auto reload of sidebar spools without loosing selection
+                self.loadSpoolsForSidebar();
             }
-            self.spoolItemTableHelper.selectedPageSize.subscribe(function(newValue){
-                localStorage[storageKey] = newValue;
-            });
         }
 
-        // Typs: error
-        self.showPopUp = function(popupType, popupTitle, message, autoclose){
-            var title = popupType.toUpperCase() + ": " + popupTitle;
-            var popupId = (title+message).replace(/([^a-z0-9]+)/gi, '-');
-            if($("."+popupId).length <1) {
-                new PNotify({
-                    title: "SPM:" + title,
-                    text: message,
-                    type: popupType,
-                    hide: autoclose,
-                    addclass: popupId
-                });
+        // Display OctoPrint notification
+        self.showPopUp = function (popupType, popupTitle, message, autoclose) {
+            const title = `${popupType.toUpperCase()}: ${popupTitle}`;
+            const popupIdClass = `${title}-${message}`.replace(/([^a-z0-9]+)/gi, '-');
+
+            const hasSamePopupAlready = document.querySelector(`.${popupIdClass}`) !== null;
+
+            if (hasSamePopupAlready) {
+                return;
             }
-        };
 
-
-        // found here: https://stackoverflow.com/questions/19491336/how-to-get-url-parameter-using-jquery-or-plain-javascript?rq=1
-        var getUrlParameter = function getUrlParameter(sParam) {
-            var sPageURL = window.location.search.substring(1),
-                sURLVariables = sPageURL.split('&'),
-                sParameterName,
-                i;
-
-            for (i = 0; i < sURLVariables.length; i++) {
-                sParameterName = sURLVariables[i].split('=');
-
-                if (sParameterName[0] === sParam) {
-                    return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
-                }
-            }
+            new PNotify({
+                title: "SPM:" + title,
+                text: message,
+                type: popupType,
+                hide: autoclose,
+                addclass: popupIdClass
+            });
         };
 
         self.reloadQRCodePreviewImage = function(){
@@ -188,37 +204,37 @@ $(function() {
             self.databaseErrorMessage("");
         }
 
-        self.handleDatabaseMetaDataResponse = function(metaDataResponse){
-            var metadata = metaDataResponse["metadata"];
-            if (metadata != null){
-                var errorMessage = metadata["errorMessage"];
-                if (errorMessage != null && errorMessage.length != 0){
-                    self.showDatabaseErrorMessage(true);
-                    self.databaseErrorMessage(errorMessage);
-                }
-                var success = metadata["success"];
-                if (success != null && success == true){
-                    self.showSuccessMessage(true);
-                } else {
-                    self.showSuccessMessage(false);
-                }
+        self.handleDatabaseMetaDataResponse = function(metaDataResponse) {
+            const metadata = metaDataResponse.metadata;
 
-                self.databaseMetaData.localSchemeVersionFromDatabaseModel(metadata["localSchemeVersionFromDatabaseModel"]);
-                self.databaseMetaData.localSchemeVersionFromDatabaseModel(metadata["localSchemeVersionFromDatabaseModel"]);
-                self.databaseMetaData.localSpoolItemCount(metadata["localSpoolItemCount"]);
-                self.databaseMetaData.externalSchemeVersionFromDatabaseModel(metadata["externalSchemeVersionFromDatabaseModel"]);
-                self.databaseMetaData.externalSpoolItemCount(metadata["externalSpoolItemCount"]);
-                self.databaseMetaData.schemeVersionFromPlugin(metadata["schemeVersionFromPlugin"]);
+            if (metadata == null) {
+                return;
+            }
 
-                if (self.databaseMetaData.schemeVersionFromPlugin() != self.databaseMetaData.externalSchemeVersionFromDatabaseModel()){
-                    self.showUpdateSchemeMessage(true);
-                }
+            const errorMessage = metadata.errorMessage;
+            if (errorMessage != null && errorMessage.length != 0) {
+                self.showDatabaseErrorMessage(true);
+                self.databaseErrorMessage(errorMessage);
+            }
+            const success = metadata.success;
+            const successMessageFlag = (success != null && success == true) ? true : false;
+
+            self.showSuccessMessage(successMessageFlag);
+
+            self.databaseMetaData.localSchemeVersionFromDatabaseModel(metadata.localSchemeVersionFromDatabaseModel);
+            self.databaseMetaData.localSchemeVersionFromDatabaseModel(metadata.localSchemeVersionFromDatabaseModel);
+            self.databaseMetaData.localSpoolItemCount(metadata.localSpoolItemCount);
+            self.databaseMetaData.externalSchemeVersionFromDatabaseModel(metadata.externalSchemeVersionFromDatabaseModel);
+            self.databaseMetaData.externalSpoolItemCount(metadata.externalSpoolItemCount);
+            self.databaseMetaData.schemeVersionFromPlugin(metadata.schemeVersionFromPlugin);
+
+            if (self.databaseMetaData.schemeVersionFromPlugin() != self.databaseMetaData.externalSchemeVersionFromDatabaseModel()) {
+                self.showUpdateSchemeMessage(true);
             }
         }
 
-        self.buildDatabaseSettings = function(){
-
-            var databaseSettings = {
+        self.buildDatabaseSettings = function() {
+            return {
                 databaseType: self.pluginSettings.databaseType(),
                 databaseHost: self.pluginSettings.databaseHost(),
                 databasePort: self.pluginSettings.databasePort(),
@@ -226,66 +242,53 @@ $(function() {
                 databaseUser: self.pluginSettings.databaseUser(),
                 databasePassword: self.pluginSettings.databasePassword(),
             }
-            return databaseSettings
         }
 
-        self.testDatabaseConnection = function(){
-
+        self.testDatabaseConnection = function() {
             self.resetDatabaseMessages()
             self.showExternalBusyIndicator(true);
 
-//  TODO cleanup          var databaseSettings = {
-//                databaseType: self.pluginSettings.databaseType(),
-//                databaseHost: self.pluginSettings.databaseHost(),
-//                databasePort: self.pluginSettings.databasePort(),
-//                databaseName: self.pluginSettings.databaseName(),
-//                databaseUser: self.pluginSettings.databaseUser(),
-//                databasePassword: self.pluginSettings.databasePassword(),
-//            }
-            var databaseSettings = self.buildDatabaseSettings();
-            // api-call
-            self.apiClient.testDatabaseConnection(databaseSettings, function(responseData){
+            const databaseSettings = self.buildDatabaseSettings();
+
+            self.apiClient.testDatabaseConnection(databaseSettings, function(responseData) {
                 self.handleDatabaseMetaDataResponse(responseData);
                 self.showExternalBusyIndicator(false);
             });
         }
 
         self.deleteDatabaseAction = function(databaseType) {
-            var result = confirm("Do you really want to delete all SpoolManager data?");
-            if (result == true){
-//  TODO cleanup
-//                var databaseSettings = {
-//                    databaseType: self.pluginSettings.databaseType(),
-//                    databaseHost: self.pluginSettings.databaseHost(),
-//                    databasePort: self.pluginSettings.databasePort(),
-//                    databaseName: self.pluginSettings.databaseName(),
-//                    databaseUser: self.pluginSettings.databaseUser(),
-//                    databasePassword: self.pluginSettings.databasePassword(),
-//                }
-                var databaseSettings = self.buildDatabaseSettings();
-                self.apiClient.callDeleteDatabase(databaseType, databaseSettings, function(responseData) {
-                    self.spoolItemTableHelper.reloadItems();
-                });
+            const confirmationResult = confirm("Do you really want to delete all SpoolManager data?");
+
+            if (!confirmationResult) {
+                return;
             }
+
+            const databaseSettings = self.buildDatabaseSettings();
+
+            self.apiClient.callDeleteDatabase(databaseType, databaseSettings, function(responseData) {
+                self.spoolItemTableHelper.reloadItems();
+            });
         };
 
-        $("#spoolmanger-settings-tab").find('a[data-toggle="tab"]').on('shown', function (e) {
+        $("#spoolmanger-settings-tab")
+            .find('a[data-toggle="tab"]')
+            .on('shown', function (evt) {
+                const activatedTab = evt.target.hash;
+                const prevTab = evt.relatedTarget.hash;
 
-              var activatedTab = e.target.hash; // activated tab
-              var prevTab = e.relatedTarget.hash; // previous tab
+                if ("#tab-spool-Storage" != activatedTab) {
+                    return;
+                }
 
-              if ("#tab-spool-Storage" == activatedTab){
-                  self.resetDatabaseMessages()
-
-                  self.showLocalBusyIndicator(true);
-                  self.showExternalBusyIndicator(true);
-                  self.apiClient.loadDatabaseMetaData(function(responseData) {
-                        self.handleDatabaseMetaDataResponse(responseData);
-                        self.showLocalBusyIndicator(false);
-                        self.showExternalBusyIndicator(false);
-                   });
-              }
-        });
+                self.resetDatabaseMessages()
+                self.showLocalBusyIndicator(true);
+                self.showExternalBusyIndicator(true);
+                self.apiClient.loadDatabaseMetaData(function(responseData) {
+                    self.handleDatabaseMetaDataResponse(responseData);
+                    self.showLocalBusyIndicator(false);
+                    self.showExternalBusyIndicator(false);
+                });
+            });
 
         self.isFilamentManagerPluginAvailable = ko.observable(false);
 
@@ -322,16 +325,16 @@ $(function() {
             }
         });
         self.performCSVImportFromUpload = function() {
-            if (self.csvImportUploadData === undefined) return;
+            if (self.csvImportUploadData === undefined) {
+                return;
+            }
 
             self.csvImportInProgress(true);
-            self.csvImportDialog.showDialog(function(shouldTableReload){
-                    //
-                    if (shouldTableReload == true){
-                        self.spoolItemTableHelper.reloadItems();
-                    }
+            self.csvImportDialog.showDialog(function(shouldTableReload) {
+                if (shouldTableReload == true) {
+                    self.spoolItemTableHelper.reloadItems();
                 }
-            );
+            });
             self.csvImportUploadData.submit();
         };
 
@@ -346,7 +349,7 @@ $(function() {
                     if (value == false){
                         self.pluginSettings.excludedFromTemplateCopy.push(fieldName);
                     } else {
-                       self.pluginSettings.excludedFromTemplateCopy.remove(fieldName);
+                        self.pluginSettings.excludedFromTemplateCopy.remove(fieldName);
                     }
                 },
                 owner: this
@@ -356,15 +359,20 @@ $(function() {
         // overwrite save-button
         const origSaveSettingsFunction = self.settingsViewModel.saveData;
         const newSaveSettingsFunction = function confirmSpoolSelectionBeforeStartPrint(data, successCallback, setAsSending) {
-            if (self.pluginSettings.useExternal() == true &&
-                (self.showDatabaseErrorMessage() == true || self.showUpdateSchemeMessage() == true)
-                ){
-                var check = confirm('External database will not work. Save settings anyway?');
-                if (check == true) {
+            if (
+                self.pluginSettings.useExternal() == true &&
+                (
+                    self.showDatabaseErrorMessage() == true ||
+                    self.showUpdateSchemeMessage() == true
+                )
+            ) {
+                const confirmationResult = confirm('External database will not work. Save settings anyway?');
+                if (confirmationResult == true) {
                     return origSaveSettingsFunction(data, successCallback, setAsSending);
                 }
                 return null;
             }
+
             return origSaveSettingsFunction(data, successCallback, setAsSending);
         }
         self.settingsViewModel.saveData = newSaveSettingsFunction;
@@ -444,24 +452,31 @@ $(function() {
 
         self.replaceFilamentView = function replaceFilamentViewInSidebar() {
             $('#state').find('.accordion-inner').contents().each(function (index, item) {
-                if (item.nodeType === Node.COMMENT_NODE) {
-                    if (item.nodeValue === ' ko foreach: filament ' || item.nodeValue === ' ko foreach: [] ') {
-                        item.nodeValue = ' ko foreach: [] '; // eslint-disable-line no-param-reassign
-                        var element = '<!-- ko if: spoolsWithWeight().length < 1 -->  <span><strong>Required Filament unknown</strong></span><br/> <!-- /ko -->';
-                        element += '<!-- ko foreach: spoolsWithWeight --> <span data-bind="text: \'Tool \' + toolIndex + \': \', attr: {title: \'Filament usage for Spool \' + spoolName}"></span><strong data-bind="html: $root.formatSpoolsWithWeight($data)"></strong><br> <!-- /ko -->';
-
-                        element += '<div data-bind="visible: settings.settings.plugins.SpoolManager.extrusionDebuggingEnabled">';
-                        element += '<!-- ko foreach: extrusionValues -->';
-                        element += '<div>Extruded Tool <span data-bind="text: $index"></span>: <strong data-bind="text: $data.toFixed(2)"></strong></div>';
-                        element += '<!-- /ko -->';
-
-                        element += '</div>'
-                        $(element).insertBefore(item);
-
-                        return false; // exit loop
-                    }
+                if (item.nodeType !== Node.COMMENT_NODE) {
+                    return true;
                 }
-                return true;
+
+                if (
+                    item.nodeValue !== ' ko foreach: filament ' &&
+                    item.nodeValue !== ' ko foreach: [] '
+                ) {
+                    return true;
+                }
+
+                item.nodeValue = ' ko foreach: [] '; // eslint-disable-line no-param-reassign
+
+                let newElement = '<!-- ko if: spoolsWithWeight().length < 1 -->  <span><strong>Required Filament unknown</strong></span><br/> <!-- /ko -->';
+                newElement += '<!-- ko foreach: spoolsWithWeight --> <span data-bind="text: \'Tool \' + toolIndex + \': \', attr: {title: \'Filament usage for Spool \' + spoolName}"></span><strong data-bind="html: $root.formatSpoolsWithWeight($data)"></strong><br> <!-- /ko -->';
+
+                newElement += '<div data-bind="visible: settings.settings.plugins.SpoolManager.extrusionDebuggingEnabled">';
+                newElement += '<!-- ko foreach: extrusionValues -->';
+                newElement += '<div>Extruded Tool <span data-bind="text: $index"></span>: <strong data-bind="text: $data.toFixed(2)"></strong></div>';
+                newElement += '<!-- /ko -->';
+
+                newElement += '</div>'
+                $(newElement).insertBefore(item);
+
+                return false; // exit loop
             });
         };
 
@@ -500,92 +515,88 @@ $(function() {
                 self.selectedSpoolsForSidebar.valueHasMutated();
             }
 
-            var currentFilterName = "all";
-            // if (self.pluginSettings!= null){
-            //      if(self.pluginSettings.hideEmptySpoolsInSidebar() == true) {
-            //          currentFilterName = "hideEmptySpools";
-            //      }
-            //      if(self.pluginSettings.hideInactiveSpoolsInSidebar() == true) {
-            //          currentFilterName = "hideInactiveSpools";
-            //      }
-            //      if(self.pluginSettings.hideEmptySpoolsInSidebar() == true && self.pluginSettings.hideInactiveSpoolsInSidebar() == true) {
-            //          currentFilterName = "hideEmptySpools,hideInactiveSpools";
-            //      }
-            // }
-
-            var tableQuery = {
-                filterName: currentFilterName,
+            const fetchSpoolsQueryParams = {
+                filterName: "all",
                 from: 0,
                 to: 3333,
                 sortColumn: "lastUse",
                 sortOrder: "desc"
             }
 
-            // api-call
-            self.apiClient.callLoadSpoolsByQuery(tableQuery, function(responseData){
+            self.apiClient.callLoadSpoolsByQuery(fetchSpoolsQueryParams, function(responseData) {
+                const allSpoolData = responseData.allSpools;
 
-                var allSpoolData = responseData["allSpools"]; // rawdtata
-                if (allSpoolData != null){
-                    var allSpoolItems = ko.utils.arrayMap(allSpoolData, function (spoolData) {
-                        var result = self.spoolDialog.createSpoolItemForTable(spoolData);
-                        return result;
-                    }); // transform to SpoolItems with KO.obseravables
-                    self.allSpoolsForSidebar(allSpoolItems);
-
-                    var spoolsData = responseData["selectedSpools"],
-                        slot, spoolData, spoolItem;
-                    for(var i=0; i<self.selectedSpoolsForSidebar().length; i++) {
-                        slot = self.selectedSpoolsForSidebar()[i];
-                        spoolData = (i < spoolsData.length) ? spoolsData[i] : null;
-                        spoolItem = spoolData ? self.spoolDialog.createSpoolItemForTable(spoolData) : null;
-                        slot(spoolItem);
-                    }
-                    // Pre sorting in Selection-Dialog
-                    // self.sidebarFilterSorter.sortSpoolArray("displayName", "ascending");
+                if (allSpoolData == null) {
+                    return;
                 }
+
+                // transform to SpoolItems with KO.obseravables
+                const allSpoolItems = ko.utils.arrayMap(allSpoolData, function (spoolData) {
+                    return self.spoolDialog.createSpoolItemForTable(spoolData);
+                });
+                self.allSpoolsForSidebar(allSpoolItems);
+
+                const spoolsData = responseData.selectedSpools;
+
+                for (let spoolIdx = 0; spoolIdx < self.selectedSpoolsForSidebar().length; spoolIdx++) {
+                    const slot = self.selectedSpoolsForSidebar()[spoolIdx];
+                    const spoolData = (spoolIdx < spoolsData.length) ? spoolsData[spoolIdx] : null;
+                    const spoolItem = spoolData ? self.spoolDialog.createSpoolItemForTable(spoolData) : null;
+
+                    slot(spoolItem);
+                }
+
+                // Pre sorting in Selection-Dialog
+                // self.sidebarFilterSorter.sortSpoolArray("displayName", "ascending");
             });
         }
 
-        _buildRemainingText = function(spoolItem){
-            var remainingInfo = "";
-            // if (  spoolItem.remainingWeight() != null && spoolItem.remainingWeight().length != 0
-            //     && spoolItem.remainingPercentage() != null && spoolItem.remainingPercentage().length != 0){
-            //     remainingInfo = "("+spoolItem.remainingWeight()+"g / "+spoolItem.remainingPercentage()+"%)";
-            // }
-            if (  spoolItem.remainingWeight() != null && spoolItem.remainingWeight().length != 0){
-                // remainingInfo = "(R: "+spoolItem.remainingWeight()+"g)";
-                remainingInfo = ""+spoolItem.remainingWeight()+"g";
+        _buildRemainingWeightText = function(spoolItem) {
+            const remainingWeight = spoolItem.remainingWeight();
+
+            if (remainingWeight == null || remainingWeight.length == 0) {
+                return "";
             }
-            return remainingInfo
+
+            return `${remainingWeight}${WEIGHT_UNIT_SYMBOL}`;
         }
 
-        self.remainingText = function(spoolItem){
-            var remainingInfo = "("+_buildRemainingText(spoolItem) + ")";
-            return remainingInfo;
+        self.remainingText = function(spoolItem) {
+            const remainingWeightText = _buildRemainingWeightText(spoolItem);
+
+            return `(${remainingWeightText})`;
         }
 
-        self.buildTooltipForSpoolItem = function(spoolItem, textPrefix, attribute){
-            var value = "";
-            if (spoolItem[attribute]() != null){
-                value = spoolItem[attribute]();
-            }
-            var toolTip = textPrefix + value;
-            return toolTip;
+        self.buildTooltipForSpoolItem = function(spoolItem, textPrefix, attribute) {
+            const spoolItemAttributeValue = spoolItem[attribute]();
+            const mainContent = (
+                spoolItemAttributeValue != null ?
+                    spoolItemAttributeValue :
+                    ""
+            );
+
+            return `${textPrefix}${mainContent}`;
         }
 
         self.getSpoolItemSelectedTool = function(databaseId) {
-            var spoolItem;
-            for (var i=0; i<self.selectedSpoolsForSidebar().length; i++) {
-                spoolItem = self.selectedSpoolsForSidebar()[i]();
-                if (spoolItem !== null && self.selectedSpoolsForSidebar()[i]().databaseId() === databaseId) {
-                    return i;
+            const selectedSpools = self.selectedSpoolsForSidebar();
+
+            for (let spoolIdx = 0; spoolIdx < selectedSpools.length; spoolIdx++) {
+                const spoolItem = selectedSpools[spoolIdx]();
+
+                if (
+                    spoolItem !== null &&
+                    spoolItem.databaseId() === databaseId
+                ) {
+                    return spoolIdx;
                 }
             }
+
             return null;
         }
 
-        self.selectSpoolForSidebar = function(toolIndex, spoolItem){
-            var commitCurrentSpoolValues;
+        self.selectSpoolForSidebar = function(toolIndex, inputSpoolItem) {
+            let commitCurrentSpoolValues;
             if (self.printerStateViewModel.isPrinting()) {
                 commitCurrentSpoolValues = confirm(
                     'You are changing a spool while printing. SpoolManager will commit the usage so far to the previous spool, unless you wish otherwise.\n\n' +
@@ -594,44 +605,47 @@ $(function() {
                     '"Cancel": …to the new spool'
                 )
             }
-            // api-call
-            var databaseId = -1
-            if (spoolItem != null){
-                databaseId = spoolItem.databaseId();
-                // Why do we need this information
-                // if (toolIndex != -1){
-                //     var alreadyInTool = self.getSpoolItemSelectedTool(databaseId);
-                //     if (alreadyInTool !== null) {
-                //         alert('This spool is already selected for tool ' + alreadyInTool + '!');
-                //         return;
-                //     }
-                // }
-            }
-            self.apiClient.callSelectSpool(toolIndex, databaseId, commitCurrentSpoolValues, function(responseData){
-                var spoolItem = null;
-                var spoolData = responseData["selectedSpool"];
-                if (spoolData != null){
-                    spoolItem = self.spoolDialog.createSpoolItemForTable(spoolData);
-                } else {
+
+            // Note: there was a commented-out code checking whether the selected spool
+            // is already selected for another tool head.
+            const databaseId = (
+                inputSpoolItem != null ?
+                    inputSpoolItem.databaseId() :
+                    -1
+            );
+
+            self.apiClient.callSelectSpool(toolIndex, databaseId, commitCurrentSpoolValues, function(responseData) {
+                const selectedSpoolData = responseData.selectedSpool;
+
+                if (selectedSpoolData == null) {
                     // remove spool from toolIndex
+
                     self.selectedSpoolsForSidebar()[toolIndex](null);
                     return;
                 }
 
                 // remove the spool from the current toolIndex
-                var currentDatabaseId = spoolItem.databaseId();
-                for (var i = 0; i < self.selectedSpoolsForSidebar().length; i++) {
-                    var tmpSpoolItem = self.selectedSpoolsForSidebar()[i]();
-                    if (tmpSpoolItem !== null && tmpSpoolItem.databaseId() === currentDatabaseId) {
-                        self.selectedSpoolsForSidebar()[i](null);
+                const addedSpoolItem = self.spoolDialog.createSpoolItemForTable(selectedSpoolData);
+                const addedSpoolItemDatabaseId = addedSpoolItem.databaseId();
+                const selectedSpools = self.selectedSpoolsForSidebar();
+
+                for (let spoolIdx = 0; spoolIdx < selectedSpools.length; spoolIdx++) {
+                    const spoolItem = selectedSpools[spoolIdx]();
+
+                    if (
+                        spoolItem !== null &&
+                        spoolItem.databaseId() === addedSpoolItemDatabaseId
+                    ) {
+                        selectedSpools[spoolIdx](null);
+
                         break;
                     }
                 }
+
                 // assign to new (or same) toolIndex
                 if (toolIndex != -1) {
-                    self.selectedSpoolsForSidebar()[toolIndex](spoolItem)
+                    self.selectedSpoolsForSidebar()[toolIndex](addedSpoolItem)
                 }
-
             });
         }
 
@@ -669,48 +683,18 @@ $(function() {
         //////////////////////////////////////////////////////////////////////////////////////////////////// TABLE / TAB
 
         self.addNewSpool = function(){
-            self.spoolDialog.showDialog(null, closeDialogHandler);
+            self.spoolDialog.showDialog(null, handleSpoolDialogClose);
         }
 
-        var TableAttributeVisibility = function (){
-            this.databaseId = ko.observable(false);
-            this.displayName = ko.observable(true);
-            this.material = ko.observable(true);
-            this.lastFirstUse = ko.observable(true);
-            this.weight = ko.observable(true);
-            this.used = ko.observable(true);
-            this.note = ko.observable(true);
-        }
-        self.tableAttributeVisibility = new TableAttributeVisibility();
-
-        self.initTableVisibilities = function(){
-            // load all settings from browser storage
-            if (!Modernizr.localstorage) {
-                // damn!!!
-                return false;
-            }
-
-            assignVisibility = function(attributeName){
-                var storageKey = "spoolmanager.table.visible." + attributeName;
-                if (localStorage[storageKey] == null){
-                    // localStorage[storageKey] = true; // default value
-                    localStorage[storageKey] = self.tableAttributeVisibility[attributeName](); // default value
-                } else {
-                    self.tableAttributeVisibility[attributeName]( "true" == localStorage[storageKey]);
-                }
-                self.tableAttributeVisibility[attributeName].subscribe(function(newValue){
-                    localStorage[storageKey] = newValue;
-                });
-            }
-
-            assignVisibility("databaseId");
-            assignVisibility("displayName");
-            assignVisibility("material");
-            assignVisibility("lastFirstUse");
-            assignVisibility("weight");
-            assignVisibility("used");
-            assignVisibility("note");
-        }
+        self.tableAttributeVisibility = {
+            databaseId: ko.observable(false),
+            displayName: ko.observable(true),
+            material: ko.observable(true),
+            lastFirstUse: ko.observable(true),
+            weight: ko.observable(true),
+            used: ko.observable(true),
+            note: ko.observable(true),
+        };
 
         ///////////////////////////////////////////////////////////////////////////////////////////////// TABLE BEHAVIOR
         /* needed for Filter-Search dropdown-menu */
@@ -718,39 +702,31 @@ $(function() {
             e.stopPropagation();
         });
 
-        self.spoolItemTableHelper = new TableItemHelper(function(tableQuery, observableTableModel, observableTotalItemCount){
+        self.spoolItemTableHelper = new TableItemHelper(
+            function(tableQuery, observableTableModel, observableTotalItemCount) {
+                self.apiClient.callLoadSpoolsByQuery(tableQuery, function(responseData) {
+                    const hasDbConnectionProblem = responseData.databaseConnectionProblem == true;
 
-            // api-call
-            self.apiClient.callLoadSpoolsByQuery(tableQuery, function(responseData){
+                    self.pluginNotWorking(hasDbConnectionProblem);
 
-                if (responseData["databaseConnectionProblem"] != null && responseData["databaseConnectionProblem"] == true){
-                    self.pluginNotWorking(true);
-                } else {
-                    self.pluginNotWorking(false);
-                }
+                    const {
+                        totalItemCount,
+                        allSpools,
+                        catalogs,
+                        templateSpools,
+                    } = responseData;
 
-                totalItemCount = responseData["totalItemCount"];
-                allSpoolItems = responseData["allSpools"];
-                var allCatalogs = responseData["catalogs"];
+                    self.spoolItemTableHelper.updateCatalogs(catalogs);
+                    self.spoolDialog.updateCatalogs(catalogs);
+                    self.spoolDialog.updateTemplateSpools(templateSpools);
 
-                // assign catalogs to sidebarFilterSorter
-                // self.sidebarFilterSorter.updateCatalogs(allCatalogs);
-                // assign catalogs to tablehelper
-                self.spoolItemTableHelper.updateCatalogs(allCatalogs);
-                // assign all catalogs to editview
-                self.spoolDialog.updateCatalogs(allCatalogs);
+                    const dataRows = ko.utils.arrayMap(allSpools, function (spoolData) {
+                        return self.spoolDialog.createSpoolItemForTable(spoolData);
+                    });
 
-                templateSpoolsData = responseData["templateSpools"];
-                self.spoolDialog.updateTemplateSpools(templateSpoolsData);
-
-                var dataRows = ko.utils.arrayMap(allSpoolItems, function (spoolData) {
-                    var result = self.spoolDialog.createSpoolItemForTable(spoolData);
-                    return result;
+                    observableTotalItemCount(totalItemCount);
+                    observableTableModel(dataRows);
                 });
-
-                observableTotalItemCount(totalItemCount);
-                observableTableModel(dataRows);
-            });
             },
             10,
             "displayName",
@@ -758,229 +734,210 @@ $(function() {
         );
 
         self.showSpoolDialogAction = function(selectedSpoolItem) {
+            const currentSpoolDbId = selectedSpoolItem.databaseId();
 
-            // identify for which toolindex is the current selectedSpoolItem is selected
-            var currentDatabaseId = selectedSpoolItem.databaseId();
-            if (currentDatabaseId) {
-                for (var i = 0; i < self.selectedSpoolsForSidebar().length; i++) {
-                    spoolItem = self.selectedSpoolsForSidebar()[i]();
-                    if (spoolItem !== null && spoolItem.databaseId() === currentDatabaseId) {
-                        selectedSpoolItem.selectedForTool(i);
-                        break;
-                    }
-                }
+            const showDialog = () => {
+                self.spoolDialog.showDialog(selectedSpoolItem, handleSpoolDialogClose);
+            };
+
+            if (!currentSpoolDbId) {
+                showDialog();
+
+                return;
             }
-            self.spoolDialog.showDialog(selectedSpoolItem, closeDialogHandler);
+
+            const sidebarSpools = self.selectedSpoolsForSidebar();
+
+            for (let spoolIdx = 0; spoolIdx < sidebarSpools.length; spoolIdx++) {
+                const spoolItem = sidebarSpools[spoolIdx]();
+
+                if (spoolItem === null || spoolItem.databaseId() !== currentSpoolDbId) {
+                    continue;
+                }
+
+                selectedSpoolItem.selectedForTool(spoolIdx);
+
+                break;
+            }
+
+            showDialog();
         };
-
-        closeDialogHandler = function(shouldTableReload, specialAction, currentSpoolItem){
-
-            if (specialAction === "selectSpoolForPrinting"){
-                var toolIndex = currentSpoolItem.selectedForTool();
-                if (toolIndex === undefined){
-                    // clear current selection
-                    toolIndex = -1;
-                }
-                self.selectSpoolForSidebar(toolIndex, currentSpoolItem);
-            }
-
-            if (shouldTableReload == true){
-                self.spoolItemTableHelper.reloadItems();
-                // TODO auto reload of sidebar spools without loosing selection
-                self.loadSpoolsForSidebar();
-            }
-        }
 
         ///////////////////////////////////////////////////////////////////////////////////////// OCTOPRINT PRINT-BUTTON
         const origStartPrintFunction = self.printerStateViewModel.print;
         const newStartPrintFunction = function confirmSpoolSelectionBeforeStartPrint() {
-                // api-call
-                self.apiClient.allowedToPrint(function(responseData){
-                    var result = responseData.result,
-                        check, itemList;
+            self.apiClient.allowedToPrint(function(responseData) {
+                var result = responseData.result, itemList;
 
-                    var warning = "";
-                    var warning2 = "";
-                    if (responseData.metaOrAttributesMissing){
-                        warning = "ATTENTION: Needed filament could not calculated (missing metadata or spool-fields)\n\n";
-                        warning2 = " (maybe)"
+                const printWarnings = (
+                    responseData.metaOrAttributesMissing
+                    ? {
+                        header: "ATTENTION: Needed filament could not calculated (missing metadata or spool-fields)\n\n",
+                        missingMeta: " (maybe)",
                     }
-
-
-                    if (result.noSpoolSelected.length) {
-                        itemList = [];
-                        for (item of result.noSpoolSelected) {
-                            itemList.push('Tool '+item.toolIndex)
-                        }
-                        if (itemList.length === 1) {
-                            check = confirm(
-                                warning +
-                                'There is no spool selected for ' + itemList[0] + ' despite it being used' + warning2 + ' by this print.\n\n' +
-                                'Do you want to start the print without a selected spool?'
-                            );
-                        } else {
-                            check = confirm(
-                                warning +
-                                'There are no spools selected for the following tools despite them being used' + warning2 + ' by this print:\n' +
-                                '- '+ itemList.join('\n- ') + '\n\n' +
-                                'Do you want to start the print without selected spools?'
-                            );
-                        }
-                        if (!check) {
-                            return;
-                        }
+                    : {
+                        header: "",
+                        missingMeta: "",
                     }
+                );
 
-                    buildSpoolLabel = function(item){
-                        var label =  item.toolIndex+": '" + item.material + " - " + item.spoolName;
+                if (result.noSpoolSelected.length) {
+                    const toolsWithMissingSpools = result.noSpoolSelected.map((item) => {
+                        return `- Tool ${item.toolIndex}`;
+                    });
 
-                        if (item.remainingWeight != null && typeof item.remainingWeight === 'number'){
-                            label = label + " ("+item.remainingWeight.toFixed(2)  +"g)";
-                        }
-                        label = label + "'";
-                        return label;
+                    const hasConfirmedPrintWithoutSpoolsSelected = confirm(
+                        printWarnings.header +
+                        'There are no spools selected for the following tools ' +
+                        'despite them being used' + printWarnings.missingMeta + ' by this print:\n' +
+                        toolsWithMissingSpools.join('\n') + '\n\n' +
+                        'Do you want to start the print without selected spools?'
+                    );
+
+                    if (!hasConfirmedPrintWithoutSpoolsSelected) {
+                        return;
                     }
+                }
 
-                    if (result.filamentNotEnough.length) {
-                        itemList = [];
-                        for (item of result.filamentNotEnough) {
-                            var spoolLabel = buildSpoolLabel(item);
-                            // itemList.push("'" + item.spoolName + "' (tool "+item.toolIndex+")");
-                            itemList.push(spoolLabel);
-                        }
-                        if (itemList.length === 1) {
-                            check = confirm(
-                                warning +
-                                'The selected spool for tool ' + itemList[0] + ' does not have enough remaining filament'+warning2+'.\n\n' +
-                                'Do you want to start the print anyway?'
-                            );
-                        } else {
-                            check = confirm(
-                                warning +
-                                'The following selected spools do not have enough remaining filament'+warning2+':\n' +
-                                '- '+ itemList.join('\n- ') + '\n\n' +
-                                'Do you want to start the print anyway?'
-                            );
-                        }
-                        if (!check) {
-                            return;
-                        }
+                if (result.filamentNotEnough.length) {
+                    const inadequateFilamentSpools = result.filamentNotEnough.map((item) => {
+                        return `- ${buildSpoolLabel(item)}`;
+                    });
+
+                    const hasConfirmedPrintWithInadequateFilamentSpools = confirm(
+                        printWarnings.header +
+                        'The following selected spools do not have enough remaining filament' + printWarnings.missingMeta + ':\n' +
+                        inadequateFilamentSpools.join('\n') + '\n\n' +
+                        'Do you want to start the print anyway?'
+                    );
+
+                    if (!hasConfirmedPrintWithInadequateFilamentSpools) {
+                        return;
                     }
+                }
 
-                    if (result.reminderSpoolSelection.length) {
-                        itemList = [];
-                        // for (item of result.reminderSpoolSelection) {
-                        //     itemList.push(((result.reminderSpoolSelection.length>1)?("Tool "+item.toolIndex+": "):'')+"'" + item.spoolName + "'");
-                        // }
-                        // if (itemList.length === 1) {
-                        //     check = confirm(
-                        //         'Do you want to start the print with the selected spool?\n- ' + itemList[0] + '?'
-                        //     );
-                        // } else {
-                        //     check = confirm(
-                        //         "Do you want to start the print with following selected spools?\n" +
-                        //         '- '+ itemList.join('\n- ')
-                        //     );
-                        // }
-                        // build message for each tool
-                        for (item of result.reminderSpoolSelection) {
-                            var toolMessage = buildSpoolLabel(item);
-                            if (responseData.toolOffsetEnabled && item.toolOffset != null) toolMessage += "\n--  Tool Offset:  "+item.toolOffset+'\u00B0';
-                            if (responseData.bedOffsetEnabled && item.bedOffset != null) toolMessage += "\n--  Bed Offset:  "+item.bedOffset+'\u00B0';
-                            if (responseData.enclosureOffsetEnabled && item.enclosureOffset != null) toolMessage += "\n--  Enclosure Offset:  "+item.enclosureOffset+'\u00B0';
-                            itemList.push(toolMessage);
-                        }
-                        check = confirm(
-                            "Do you want to start the print with following selected spools?\n" +
-                            "- "+ itemList.join("\n- ")
+                if (result.reminderSpoolSelection.length) {
+                    const selectedSpools = result.reminderSpoolSelection.map((item) => {
+                        const spoolLabel = buildSpoolLabel(item);
+                        const toolTempOffsetText = (
+                            responseData.toolOffsetEnabled && item.toolOffset != null
+                                ? "\n--  Tool Offset:  " + item.toolOffset + '\u00B0'
+                                : ""
+                        );
+                        const bedTempOffsetText = (
+                            responseData.bedOffsetEnabled && item.bedOffset != null
+                                ? "\n--  Bed Offset:  " + item.bedOffset + '\u00B0'
+                                : ""
+                        );
+                        const enclosureTempOffsetText = (
+                            responseData.enclosureOffsetEnabled && item.enclosureOffset != null
+                                ? "\n--  Enclosure Offset:  " + item.enclosureOffset + '\u00B0'
+                                : ""
                         );
 
-                        if (!check) {
-                            return;
-                        }
-                    }
-                    // we are ready to go. Inform the backend and after that START PRINT
-                    self.apiClient.startPrintConfirmed(function(responseData){
-                        origStartPrintFunction();
+                        return `- ${spoolLabel}${toolTempOffsetText}${bedTempOffsetText}${enclosureTempOffsetText}`;
                     });
+
+                    const hasConfirmedPrint = confirm(
+                        "Do you want to start the print with following selected spools?\n" +
+                        selectedSpools.join('\n')
+                    );
+
+                    if (!hasConfirmedPrint) {
+                        return;
+                    }
+                }
+
+                self.apiClient.startPrintConfirmed(() => {
+                    origStartPrintFunction();
                 });
+            });
         };
+        self.printerStateViewModel.print = newStartPrintFunction;
+
         // overwrite loadFile
         self.filesViewModel.loadFile = function confirmSpoolSelectionOnLoadAndPrint(data, printAfterLoad) {
             // orig. SourceCode
-            if (!self.filesViewModel.loginState.hasPermission(self.filesViewModel.access.permissions.FILES_SELECT)) return;
-
-            if (!data) {
+            if (
+                !self.filesViewModel.loginState.hasPermission(self.filesViewModel.access.permissions.FILES_SELECT) ||
+                !data
+            ) {
                 return;
             }
 
-            if (printAfterLoad && self.filesViewModel.listHelper.isSelected(data) && self.filesViewModel.enablePrint(data)) {
+            if (
+                printAfterLoad &&
+                self.filesViewModel.listHelper.isSelected(data) &&
+                self.filesViewModel.enablePrint(data)
+            ) {
                 // file was already selected, just start the print job with the newStartPrint function
                 // SPOOLMANAGER-CHANGE changed OctoPrint.job.start();
                 newStartPrintFunction();
-            } else {
-                // select file, start print job (if requested and within dimensions)
-                var withinPrintDimensions = self.filesViewModel.evaluatePrintDimensions(data, true);
-                var print = printAfterLoad && withinPrintDimensions;
 
-                if (print && self.filesViewModel.settingsViewModel.feature_printStartConfirmation()) {
-                    showConfirmationDialog({
-                        message: gettext("This will start a new print job. Please check that the print bed is clear."),
-                        question: gettext("Do you want to start the print job now?"),
-                        cancel: gettext("No"),
-                        proceed: gettext("Yes"),
-                        onproceed: function() {
-                            OctoPrint.files.select(data.origin, data.path, false).done(function () {
-                                                                                    if (print){
-                                                                                     newStartPrintFunction();
-                                                                                    }
-                                                                                });
-                        },
-                        nofade: true
-                    });
-                } else {
-                    OctoPrint.files.select(data.origin, data.path, false).done(function () {
-                                                                                    if (print){
-                                                                                     newStartPrintFunction();
-                                                                                    }
-                                                                                });
-                }
+                return;
+            }
+
+            // select file, start print job (if requested and within dimensions)
+            const withinPrintDimensions = self.filesViewModel.evaluatePrintDimensions(data, true);
+            const shouldAllowPrint = printAfterLoad && withinPrintDimensions;
+
+            const startPrint = () => {
+                OctoPrint.files.select(data.origin, data.path, false).done(function () {
+                    if (shouldAllowPrint) {
+                        newStartPrintFunction();
+                    }
+                });
+            };
+
+            // TODO: `shouldAllowPrint` should be separated
+            if (
+                shouldAllowPrint &&
+                self.filesViewModel.settingsViewModel.feature_printStartConfirmation()
+            ) {
+                showConfirmationDialog({
+                    message: gettext("This will start a new print job. Please check that the print bed is clear."),
+                    question: gettext("Do you want to start the print job now?"),
+                    cancel: gettext("No"),
+                    proceed: gettext("Yes"),
+                    onproceed: function() {
+                        startPrint();
+                    },
+                    nofade: true
+                });
+            } else {
+                startPrint();
             }
         };
 
-        self.printerStateViewModel.print = newStartPrintFunction;
-
         //////////////////////////////////////////////////////////////////////////////////////// PUBLIC VIEWMODEL - APIs
         // e.g. for CostEstaminator-Plugin
-        self.api_getSelectedSpoolInformations = function(){
-            var result = [];
-            var spoolItem;
-            for (var i=0; i<self.selectedSpoolsForSidebar().length; i++) {
-                var spoolData = null;
-                spoolItem = self.selectedSpoolsForSidebar()[i]();
-                if (spoolItem !== null) {
-                    spoolData = {
-                        "toolIndex": i,
-                        "databaseId": spoolItem.databaseId(),
-                        "spoolName": spoolItem.displayName(),
-                        "vendor": spoolItem.vendor(),
-                        "material": spoolItem.material(),
-                        "diameter": spoolItem.diameter(),
-                        "density": spoolItem.density(),
-                        "colorName": spoolItem.colorName(),
-                        "color": spoolItem.color(),
-                        "cost": spoolItem.cost(),
-                        "weight": spoolItem.totalWeight()
-                    }
+        self.api_getSelectedSpoolInformations = function() {
+            return self.selectedSpoolsForSidebar().map((spoolItemObservable) => {
+                const spoolItem = spoolItemObservable();
+
+                if (spoolItem === null) {
+                    return null;
                 }
-                result.push(spoolData);
-            }
-            return result;
+
+                return {
+                    toolIndex: i,
+                    databaseId: spoolItem.databaseId(),
+                    spoolName: spoolItem.displayName(),
+                    vendor: spoolItem.vendor(),
+                    material: spoolItem.material(),
+                    diameter: spoolItem.diameter(),
+                    density: spoolItem.density(),
+                    colorName: spoolItem.colorName(),
+                    color: spoolItem.color(),
+                    cost: spoolItem.cost(),
+                    weight: spoolItem.totalWeight()
+                };
+            });
         }
 
         //////////////////////////////////////////////////////////////////////////////////////////////// OCTOPRINT HOOKS
         self.onStartup = function onStartupCallback() {
-            // Replace Filementview in sidebar to show weight instead of volumne
+            // Replace FilamentView in sidebar to show weight instead of volumne
             self.replaceFilamentView();
         };
 
@@ -991,12 +948,12 @@ $(function() {
             // assign current pluginSettings
             self.pluginSettings = self.settingsViewModel.settings.plugins[PLUGIN_ID];
             // load browser stored settings (includs TabelVisibility and pageSize, ...)
-            loadSettingsFromBrowserStore();
+            loadSettingsFromBrowserStore(self);
 
             // resetSettings-Stuff
-             new ResetSettingsUtilV3(self.pluginSettings).assignResetSettingsFeature(PLUGIN_ID, function(data){
+            new ResetSettingsUtilV3(self.pluginSettings).assignResetSettingsFeature(PLUGIN_ID, function(data) {
                 // no additional reset function needed in V2
-             });
+            });
 
             // Load all Spools
             self.loadSpoolsForSidebar();
@@ -1008,8 +965,6 @@ $(function() {
             self.databaseConnectionProblemDialog.init(self.apiClient);
             // Select Spool Dialog (no special binding)
             self.selectionSpoolDialog = $("#dialog_spool_selection");
-
-
 
             // Settings - Color-Picker
             self.componentFactory = new ComponentFactory();
@@ -1029,24 +984,6 @@ $(function() {
                 self.pluginSettings.qrCodeBackgroundColor(newColorValue);
             });
 
-
-            // self.pluginSettings.hideEmptySpoolsInSidebar.subscribe(function(newCheckedVaue){
-            //     var payload = {
-            //             "hideEmptySpoolsInSidebar": newCheckedVaue
-            //         };
-            //     OctoPrint.settings.savePluginSettings(PLUGIN_ID, payload);
-            //     // self.loadSpoolsForSidebar();
-            //     // self.filterSelectionSidebar();
-            // });
-            // self.pluginSettings.hideInactiveSpoolsInSidebar.subscribe(function(newCheckedVaue){
-            //     var payload = {
-            //             "hideInactiveSpoolsInSidebar": newCheckedVaue
-            //         };
-            //     OctoPrint.settings.savePluginSettings(PLUGIN_ID, payload);
-            //     // self.loadSpoolsForSidebar();
-            //     // self.filterSelectionSidebar();
-            // });
-
             // needed after the tool-count is changed
             self.settingsViewModel.printerProfiles.currentProfileData.subscribe(self.loadSpoolsForSidebar);
         }
@@ -1055,10 +992,10 @@ $(function() {
             self.spoolDialog.afterBinding();
             self.downloadDatabaseUrl(self.apiClient.getDownloadDatabaseUrl());
 
-// testing            self.spoolDialog.showDialog(null, closeDialogHandler);
+// testing            self.spoolDialog.showDialog(null, handleSpoolDialogClose);
         }
 
-        self.onSettingsShown = function(){
+        self.onSettingsShown = function() {
             if (self.isFilamentManagerPluginAvailable() == false){
                 self.apiClient.callAdditionalSettings(function(responseData) {
                     self.isFilamentManagerPluginAvailable(responseData.isFilamentManagerPluginAvailable);
@@ -1143,49 +1080,46 @@ $(function() {
             }
         }
 
-        self.onAfterTabChange = function(current, previous){
-            // alert("Next:"+next +" Current:"+previous);
-            //if ("#tab_plugin_SpoolManager" == current){
-            // var selectedSpoolId = getUrlParameter("selectedSpoolId");
-            // if (selectedSpoolId) {
-            //     console.error("Id"+selectedSpoolId);
-            // }
-            var tabHashCode = window.location.hash;
+        self.onAfterTabChange = function(current, previous) {
+            const tabHashCode = window.location.hash;
             // QR-Code-Call: We can only contain -spoolId on the very first page
-            if (tabHashCode.includes("#tab_plugin_SpoolManager-spoolId")){
-                var selectedSpoolId = tabHashCode.replace("-spoolId", "").replace("#tab_plugin_SpoolManager", "");
-                selectedSpoolId = parseInt(selectedSpoolId);
-                console.info('Loading spool: '+selectedSpoolId);
-                var alreadyInTool = self.getSpoolItemSelectedTool(selectedSpoolId);
-                if (alreadyInTool !== null) {
-                    alert('This spool is already selected for tool ' + alreadyInTool + '!');
-                    return;
-                }
-                if (self.printerStateViewModel.isPrinting()) {
-                    // not doing this while printing
-                    return;
-                }
-                // - Load SpoolItem from Backend
-                // - Open SpoolItem
-                // methode signature: toolIndex, databaseId, commitCurrentSpoolValues, responseHandler
-                var commitCurrentSpoolValues = false;
-                var toolIndex = 0
-                self.apiClient.callSelectSpool(0, selectedSpoolId, commitCurrentSpoolValues, function(responseData){
-                    //Select the SpoolManager tab
-                    $('a[href="#tab_plugin_SpoolManager"]').tab('show')
-                    var spoolItem = null;
-                    var spoolData = responseData["selectedSpool"];
-                    if (spoolData != null){
-                        spoolItem = self.spoolDialog.createSpoolItemForTable(spoolData);
-                        spoolItem.selectedFromQRCode(true);
-                        self.selectedSpoolsForSidebar()[0](spoolItem);
-                        self.showSpoolDialogAction(spoolItem);
-                    }
-                });
+            if (!tabHashCode.includes("#tab_plugin_SpoolManager-spoolId")) {
+                return;
             }
-            //}
-        }
 
+            let selectedSpoolId = tabHashCode.replace("-spoolId", "").replace("#tab_plugin_SpoolManager", "");
+            selectedSpoolId = parseInt(selectedSpoolId);
+            console.info('Loading spool: '+selectedSpoolId);
+
+            const spoolCurrentToolId = self.getSpoolItemSelectedTool(selectedSpoolId);
+            if (spoolCurrentToolId !== null) {
+                alert('This spool is already selected for tool ' + spoolCurrentToolId + '!');
+                return;
+            }
+            if (self.printerStateViewModel.isPrinting()) {
+                // not doing this while printing
+                return;
+            }
+            // - Load SpoolItem from Backend
+            // - Open SpoolItem
+            const commitCurrentSpoolValues = false;
+
+            self.apiClient.callSelectSpool(0, selectedSpoolId, commitCurrentSpoolValues, function(responseData) {
+                //Select the SpoolManager tab
+                $('a[href="#tab_plugin_SpoolManager"]').tab('show')
+                const spoolData = responseData["selectedSpool"];
+
+                if (spoolData == null) {
+                    return;
+                }
+
+                const spoolItem = self.spoolDialog.createSpoolItemForTable(spoolData);
+
+                spoolItem.selectedFromQRCode(true);
+                self.selectedSpoolsForSidebar()[0](spoolItem);
+                self.showSpoolDialogAction(spoolItem);
+            });
+        }
     }
 
     /* view model class, parameters for constructor, container to bind to
@@ -1204,10 +1138,10 @@ $(function() {
         ],
         // Elements to bind to, e.g. #settings_plugin_SpoolManager, #tab_plugin_SpoolManager, ...
         elements: [
-            document.getElementById("settings_spoolmanager"),
-            document.getElementById("tab_spoolOverview"),
-            document.getElementById("modal-dialogs-spoolManager"),
-            document.getElementById("sidebar_spool_select")
+            document.querySelector("#settings_spoolmanager"),
+            document.querySelector("#tab_spoolOverview"),
+            document.querySelector("#modal-dialogs-spoolManager"),
+            document.querySelector("#sidebar_spool_select")
         ]
     });
 });
