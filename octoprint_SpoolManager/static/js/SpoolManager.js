@@ -1138,10 +1138,10 @@ $(function() {
         ],
         // Elements to bind to, e.g. #settings_plugin_SpoolManager, #tab_plugin_SpoolManager, ...
         elements: [
-            document.getElementById("settings_spoolmanager"),
-            document.getElementById("tab_spoolOverview"),
-            document.getElementById("modal-dialogs-spoolManager"),
-            document.getElementById("sidebar_spool_select")
+            document.querySelector("#settings_spoolmanager"),
+            document.querySelector("#tab_spoolOverview"),
+            document.querySelector("#modal-dialogs-spoolManager"),
+            document.querySelector("#sidebar_spool_select")
         ]
     });
 });
