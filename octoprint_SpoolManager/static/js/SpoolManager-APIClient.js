@@ -307,19 +307,4 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
     this.getDownloadDatabaseUrl = function(exportType){
         return _addApiKeyIfNecessary("./plugin/" + this.pluginId + "/downloadDatabase");
     }
-
-//    // deactivate the Plugin/Check
-//    this.callDeactivatePluginCheck =  function (){
-//        $.ajax({
-//            url: this.baseUrl + "plugin/"+ this.pluginId +"/deactivatePluginCheck",
-//            type: "PUT"
-//        }).done(function( data ){
-//            //responseHandler(data)
-//        });
-//    }
-
-
-
-
-
 }
