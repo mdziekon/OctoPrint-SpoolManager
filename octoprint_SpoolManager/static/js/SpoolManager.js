@@ -121,19 +121,24 @@ $(function() {
             }
         }
 
-        // Typs: error
-        self.showPopUp = function(popupType, popupTitle, message, autoclose){
-            var title = popupType.toUpperCase() + ": " + popupTitle;
-            var popupId = (title+message).replace(/([^a-z0-9]+)/gi, '-');
-            if($("."+popupId).length <1) {
-                new PNotify({
-                    title: "SPM:" + title,
-                    text: message,
-                    type: popupType,
-                    hide: autoclose,
-                    addclass: popupId
-                });
+        // Display OctoPrint notification
+        self.showPopUp = function (popupType, popupTitle, message, autoclose) {
+            const title = `${popupType.toUpperCase()}: ${popupTitle}`;
+            const popupIdClass = `${title}-${message}`.replace(/([^a-z0-9]+)/gi, '-');
+
+            const hasSamePopupAlready = document.querySelector(`.${popupIdClass}`) !== null;
+
+            if (hasSamePopupAlready) {
+                return;
             }
+
+            new PNotify({
+                title: "SPM:" + title,
+                text: message,
+                type: popupType,
+                hide: autoclose,
+                addclass: popupIdClass
+            });
         };
 
         self.reloadQRCodePreviewImage = function(){
