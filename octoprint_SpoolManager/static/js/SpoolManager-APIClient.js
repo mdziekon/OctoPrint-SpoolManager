@@ -189,20 +189,18 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
     this.loadDatabaseMetaData = loadDatabaseMetaData;
 
     //////////////////////////////////////////////////////////////////////////////// TEST DatabaseConnection
-    this.testDatabaseConnection = function (databaseSettings, responseHandler){
-        jsonPayload = ko.toJSON(databaseSettings)
+    const testDatabaseConnection = safeAsync(async (databaseSettings) => {
+        const jsonPayload = ko.toJSON(databaseSettings);
 
-        $.ajax({
-            //url: API_BASEURL + "plugin/"+PLUGIN_ID+"/loadPrintJobHistory",
-            url: this.baseUrl + "plugin/" + this.pluginId + "/testDatabaseConnection",
-            dataType: "json",
-            contentType: "application/json; charset=UTF-8",
-            data: jsonPayload,
-            type: "PUT"
-        }).always(function( data ){
-            responseHandler(data);
-        });
-    }
+        return callApi(
+            "testDatabaseConnection",
+            {
+                method: "PUT",
+                body: jsonPayload,
+            },
+        );
+    });
+    this.testDatabaseConnection = testDatabaseConnection;
 
     //////////////////////////////////////////////////////////////////////////////// CONFIRM DatabaseConnectionPoblem
     this.confirmDatabaseProblemMessage = function (responseHandler){

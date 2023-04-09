@@ -244,16 +244,31 @@ $(function() {
             }
         }
 
-        self.testDatabaseConnection = function() {
+        self.testDatabaseConnection = async function() {
             self.resetDatabaseMessages()
             self.showExternalBusyIndicator(true);
 
             const databaseSettings = self.buildDatabaseSettings();
 
-            self.apiClient.testDatabaseConnection(databaseSettings, function(responseData) {
-                self.handleDatabaseMetaDataResponse(responseData);
-                self.showExternalBusyIndicator(false);
-            });
+            const testResult = await self.apiClient.testDatabaseConnection(databaseSettings);
+
+            if (!testResult.isSuccess && testResult.error.type !== "REQUEST_FAILED") {
+                return self.showPopUp(
+                    "error",
+                    'Test database connection',
+                    'An unknown error occurred while performing a request',
+                    true,
+                );
+            }
+
+            const responseData = (
+                testResult.isSuccess
+                    ? testResult.payload.response
+                    : testResult.error.response
+            );
+
+            self.handleDatabaseMetaDataResponse(responseData);
+            self.showExternalBusyIndicator(false);
         }
 
         self.deleteDatabaseAction = function(databaseType) {
