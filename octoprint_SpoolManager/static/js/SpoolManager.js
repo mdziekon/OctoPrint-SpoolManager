@@ -554,8 +554,12 @@ $(function() {
             const loadResult = await self.apiClient.callLoadSpoolsByQuery(fetchSpoolsQueryParams);
 
             if (!loadResult.isSuccess) {
-                // TODO: Error handling
-                return;
+                return self.showPopUp(
+                    "error",
+                    'Load sidebar data',
+                    'An unknown error occurred while loading data',
+                    true,
+                );
             }
 
             const responseData = loadResult.payload.response;
@@ -741,8 +745,12 @@ $(function() {
                 const loadResult = await self.apiClient.callLoadSpoolsByQuery(tableQuery);
 
                 if (!loadResult.isSuccess) {
-                    // TODO: Error handling
-                    return;
+                    return self.showPopUp(
+                        "error",
+                        'Load spools list',
+                        'An unknown error occurred while loading data',
+                        true,
+                    );
                 }
 
                 const responseData = loadResult.payload.response;
