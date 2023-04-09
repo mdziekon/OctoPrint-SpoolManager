@@ -152,7 +152,7 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
         });
     }
     //////////////////////////////////////////////////////////////////////////////// LOAD DatabaseMetaData
-    const loadDatabaseMetaData = safeAsync(async (spoolItem) => {
+    const loadDatabaseMetaData = safeAsync(async () => {
         return callApi(
             "loadDatabaseMetaData",
             {
