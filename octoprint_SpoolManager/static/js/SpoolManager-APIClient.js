@@ -203,17 +203,15 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
     this.testDatabaseConnection = testDatabaseConnection;
 
     //////////////////////////////////////////////////////////////////////////////// CONFIRM DatabaseConnectionPoblem
-    this.confirmDatabaseProblemMessage = function (responseHandler){
-        $.ajax({
-            //url: API_BASEURL + "plugin/"+PLUGIN_ID+"/loadPrintJobHistory",
-            url: this.baseUrl + "plugin/" + this.pluginId + "/confirmDatabaseProblemMessage",
-            dataType: "json",
-            contentType: "application/json; charset=UTF-8",
-            type: "PUT"
-        }).always(function( data ){
-            responseHandler(data);
-        });
-    }
+    const confirmDatabaseProblemMessage = safeAsync(async () => {
+        return callApi(
+            "confirmDatabaseProblemMessage",
+            {
+                method: "PUT",
+            },
+        );
+    });
+    this.confirmDatabaseProblemMessage = confirmDatabaseProblemMessage;
 
 
     //////////////////////////////////////////////////////////////////////////////// LOAD FILTERED/SORTED PrintJob-Items
