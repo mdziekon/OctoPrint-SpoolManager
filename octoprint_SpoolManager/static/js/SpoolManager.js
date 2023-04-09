@@ -206,12 +206,14 @@ $(function() {
 
         self.handleDatabaseMetaDataResponse = function(metaDataResponse) {
             const metadata = metaDataResponse.metadata;
+            const requestError = metaDataResponse.error;
 
-            if (metadata == null) {
+            if (!metadata && !requestError) {
                 return;
             }
 
-            const errorMessage = metadata.errorMessage;
+            const errorMessage = (metadata && metadata.errorMessage) || requestError;
+
             if (errorMessage != null && errorMessage.length != 0) {
                 self.showDatabaseErrorMessage(true);
                 self.databaseErrorMessage(errorMessage);
