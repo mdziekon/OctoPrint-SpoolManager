@@ -523,7 +523,7 @@ $(function() {
             self.selectSpoolForSidebar(toolIndex, null);
         }
 
-        self.loadSpoolsForSidebar = function() {
+        self.loadSpoolsForSidebar = async function() {
             // update filament list length
             var currentProfileData = self.settingsViewModel.printerProfiles.currentProfileData(),
                 numExtruders = (currentProfileData ? currentProfileData.extruder.count() : 0),
@@ -551,32 +551,38 @@ $(function() {
                 sortOrder: "desc"
             }
 
-            self.apiClient.callLoadSpoolsByQuery(fetchSpoolsQueryParams, function(responseData) {
-                const allSpoolData = responseData.allSpools;
+            const loadResult = await self.apiClient.callLoadSpoolsByQuery(fetchSpoolsQueryParams);
 
-                if (allSpoolData == null) {
-                    return;
-                }
+            if (!loadResult.isSuccess) {
+                // TODO: Error handling
+                return;
+            }
 
-                // transform to SpoolItems with KO.obseravables
-                const allSpoolItems = ko.utils.arrayMap(allSpoolData, function (spoolData) {
-                    return self.spoolDialog.createSpoolItemForTable(spoolData);
-                });
-                self.allSpoolsForSidebar(allSpoolItems);
+            const responseData = loadResult.payload.response;
+            const allSpoolData = responseData.allSpools;
 
-                const spoolsData = responseData.selectedSpools;
+            if (allSpoolData == null) {
+                return;
+            }
 
-                for (let spoolIdx = 0; spoolIdx < self.selectedSpoolsForSidebar().length; spoolIdx++) {
-                    const slot = self.selectedSpoolsForSidebar()[spoolIdx];
-                    const spoolData = (spoolIdx < spoolsData.length) ? spoolsData[spoolIdx] : null;
-                    const spoolItem = spoolData ? self.spoolDialog.createSpoolItemForTable(spoolData) : null;
-
-                    slot(spoolItem);
-                }
-
-                // Pre sorting in Selection-Dialog
-                // self.sidebarFilterSorter.sortSpoolArray("displayName", "ascending");
+            // transform to SpoolItems with KO.obseravables
+            const allSpoolItems = ko.utils.arrayMap(allSpoolData, function (spoolData) {
+                return self.spoolDialog.createSpoolItemForTable(spoolData);
             });
+            self.allSpoolsForSidebar(allSpoolItems);
+
+            const spoolsData = responseData.selectedSpools;
+
+            for (let spoolIdx = 0; spoolIdx < self.selectedSpoolsForSidebar().length; spoolIdx++) {
+                const slot = self.selectedSpoolsForSidebar()[spoolIdx];
+                const spoolData = (spoolIdx < spoolsData.length) ? spoolsData[spoolIdx] : null;
+                const spoolItem = spoolData ? self.spoolDialog.createSpoolItemForTable(spoolData) : null;
+
+                slot(spoolItem);
+            }
+
+            // Pre sorting in Selection-Dialog
+            // self.sidebarFilterSorter.sortSpoolArray("displayName", "ascending");
         }
 
         _buildRemainingWeightText = function(spoolItem) {
@@ -731,30 +737,36 @@ $(function() {
         });
 
         self.spoolItemTableHelper = new TableItemHelper(
-            function(tableQuery, observableTableModel, observableTotalItemCount) {
-                self.apiClient.callLoadSpoolsByQuery(tableQuery, function(responseData) {
-                    const hasDbConnectionProblem = responseData.databaseConnectionProblem == true;
+            async function(tableQuery, observableTableModel, observableTotalItemCount) {
+                const loadResult = await self.apiClient.callLoadSpoolsByQuery(tableQuery);
 
-                    self.pluginNotWorking(hasDbConnectionProblem);
+                if (!loadResult.isSuccess) {
+                    // TODO: Error handling
+                    return;
+                }
 
-                    const {
-                        totalItemCount,
-                        allSpools,
-                        catalogs,
-                        templateSpools,
-                    } = responseData;
+                const responseData = loadResult.payload.response;
+                const hasDbConnectionProblem = responseData.databaseConnectionProblem == true;
 
-                    self.spoolItemTableHelper.updateCatalogs(catalogs);
-                    self.spoolDialog.updateCatalogs(catalogs);
-                    self.spoolDialog.updateTemplateSpools(templateSpools);
+                self.pluginNotWorking(hasDbConnectionProblem);
 
-                    const dataRows = ko.utils.arrayMap(allSpools, function (spoolData) {
-                        return self.spoolDialog.createSpoolItemForTable(spoolData);
-                    });
+                const {
+                    totalItemCount,
+                    allSpools,
+                    catalogs,
+                    templateSpools,
+                } = responseData;
 
-                    observableTotalItemCount(totalItemCount);
-                    observableTableModel(dataRows);
+                self.spoolItemTableHelper.updateCatalogs(catalogs);
+                self.spoolDialog.updateCatalogs(catalogs);
+                self.spoolDialog.updateTemplateSpools(templateSpools);
+
+                const dataRows = ko.utils.arrayMap(allSpools, function (spoolData) {
+                    return self.spoolDialog.createSpoolItemForTable(spoolData);
                 });
+
+                observableTotalItemCount(totalItemCount);
+                observableTableModel(dataRows);
             },
             10,
             "displayName",

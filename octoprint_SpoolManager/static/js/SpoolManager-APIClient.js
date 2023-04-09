@@ -215,20 +215,17 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
 
 
     //////////////////////////////////////////////////////////////////////////////// LOAD FILTERED/SORTED PrintJob-Items
-    this.callLoadSpoolsByQuery = function (tableQuery, responseHandler){
-        query = _buildRequestQuery(tableQuery);
-        urlToCall = this.baseUrl + "plugin/"+this.pluginId+"/loadSpoolsByQuery?"+query;
-        $.ajax({
-            //url: API_BASEURL + "plugin/"+PLUGIN_ID+"/loadPrintJobHistory",
-            url: urlToCall,
-            type: "GET"
-        }).always(function( data ){
-            responseHandler(data)
-            //shoud be done by the server to make sure the server is informed countdownDialog.modal('hide');
-            //countdownDialog.modal('hide');
-            //countdownCircle = null;
-        });
-    }
+    const callLoadSpoolsByQuery = safeAsync(async (tableQuery) => {
+        const queryParams = _buildRequestQuery(tableQuery);
+
+        return callApi(
+            `loadSpoolsByQuery?${queryParams}`,
+            {
+                method: "GET",
+            },
+        );
+    });
+    this.callLoadSpoolsByQuery = callLoadSpoolsByQuery;
 
 
     //////////////////////////////////////////////////////////////////////////////////////////////////// SAVE Spool-Item
