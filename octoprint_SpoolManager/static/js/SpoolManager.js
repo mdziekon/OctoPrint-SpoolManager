@@ -286,7 +286,7 @@ $(function() {
                 const dbMetaDataResult = await self.apiClient.loadDatabaseMetaData();
 
                 if (!dbMetaDataResult.isSuccess) {
-                    return managerViewModel.showPopUp(
+                    return self.showPopUp(
                         "error",
                         'Load storage metadata',
                         'An unknown error occurred while loading data',
