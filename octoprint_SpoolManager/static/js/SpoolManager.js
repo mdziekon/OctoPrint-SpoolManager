@@ -286,8 +286,12 @@ $(function() {
                 const dbMetaDataResult = await self.apiClient.loadDatabaseMetaData();
 
                 if (!dbMetaDataResult.isSuccess) {
-                    // TODO: Error handling
-                    return;
+                    return managerViewModel.showPopUp(
+                        "error",
+                        'Load storage metadata',
+                        'An unknown error occurred while loading data',
+                        true,
+                    );
                 }
 
                 const responseData = dbMetaDataResult.payload.response;
