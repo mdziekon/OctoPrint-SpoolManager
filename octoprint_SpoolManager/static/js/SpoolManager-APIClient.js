@@ -152,15 +152,16 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
         });
     }
     //////////////////////////////////////////////////////////////////////////////// LOAD DatabaseMetaData
-    this.loadDatabaseMetaData = function (responseHandler){
-        var urlToCall = this.baseUrl + "plugin/"+this.pluginId+"/loadDatabaseMetaData";
-        $.ajax({
-            url: urlToCall,
-            type: "GET"
-        }).always(function( data ){
-            responseHandler(data)
-        });
-    }
+    const loadDatabaseMetaData = safeAsync(async (spoolItem) => {
+        return callApi(
+            "loadDatabaseMetaData",
+            {
+                method: "GET",
+            },
+        );
+    });
+    this.loadDatabaseMetaData = loadDatabaseMetaData;
+
     //////////////////////////////////////////////////////////////////////////////// TEST DatabaseConnection
     this.testDatabaseConnection = function (databaseSettings, responseHandler){
         jsonPayload = ko.toJSON(databaseSettings)

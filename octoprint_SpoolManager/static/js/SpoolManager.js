@@ -272,22 +272,29 @@ $(function() {
 
         $("#spoolmanger-settings-tab")
             .find('a[data-toggle="tab"]')
-            .on('shown', function (evt) {
+            .on('shown', async function (evt) {
                 const activatedTab = evt.target.hash;
-                const prevTab = evt.relatedTarget.hash;
 
-                if ("#tab-spool-Storage" != activatedTab) {
+                if (activatedTab != "#tab-spool-Storage") {
                     return;
                 }
 
                 self.resetDatabaseMessages()
                 self.showLocalBusyIndicator(true);
                 self.showExternalBusyIndicator(true);
-                self.apiClient.loadDatabaseMetaData(function(responseData) {
-                    self.handleDatabaseMetaDataResponse(responseData);
-                    self.showLocalBusyIndicator(false);
-                    self.showExternalBusyIndicator(false);
-                });
+
+                const dbMetaDataResult = await self.apiClient.loadDatabaseMetaData();
+
+                if (!dbMetaDataResult.isSuccess) {
+                    // TODO: Error handling
+                    return;
+                }
+
+                const responseData = dbMetaDataResult.payload.response;
+
+                self.handleDatabaseMetaDataResponse(responseData);
+                self.showLocalBusyIndicator(false);
+                self.showExternalBusyIndicator(false);
             });
 
         self.isFilamentManagerPluginAvailable = ko.observable(false);
