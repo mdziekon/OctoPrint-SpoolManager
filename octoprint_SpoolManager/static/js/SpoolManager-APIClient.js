@@ -243,9 +243,6 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
             "saveSpool",
             {
                 method: "PUT",
-                headers: {
-                    'Content-Type': "application/json; charset=UTF-8",
-                },
                 body: jsonPayload,
             },
         );
