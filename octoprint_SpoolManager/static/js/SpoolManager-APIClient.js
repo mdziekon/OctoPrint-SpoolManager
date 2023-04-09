@@ -109,11 +109,28 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
     const buildApiUrl = (url) => {
         return `${this.baseUrl}plugin/${this.pluginId}/${url}`;
     };
+    const buildFetchOptions = (options) => {
+        const methodsWithBody = [ "POST", "PUT", "PATCH" ];
+
+        const fetchOptions = {
+            ...options,
+        };
+
+        if (methodsWithBody.includes((options.method ?? "GET").toUpperCase())) {
+            fetchOptions.headers = {
+                'Content-Type': "application/json; charset=UTF-8",
+                ...(fetchOptions.headers ?? {}),
+            };
+        }
+
+        return fetchOptions;
+    };
 
     const callApi = async (url, options) => {
         const endpointUrl = buildApiUrl(url);
+        const fetchOptions = buildFetchOptions(options);
 
-        const request = await fetch(endpointUrl, options);
+        const request = await fetch(endpointUrl, fetchOptions);
         const response = await ((async () => {
             if (request.headers.get('Content-Type') !== 'application/json') {
                 return;
