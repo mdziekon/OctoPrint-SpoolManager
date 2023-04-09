@@ -37,6 +37,7 @@ const createFailure = (error) => {
 };
 
 const ASYNC_FN_FAIL_ERROR = "ASYNC_FN_FAILED";
+const REQUEST_FAILED_ERROR = "REQUEST_FAILED";
 
 /**
  * @template {unknown[]} AsyncArgs
@@ -111,14 +112,8 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
 
     const callApi = async (url, options) => {
         const endpointUrl = buildApiUrl(url);
+
         const request = await fetch(endpointUrl, options);
-
-        if (!request.ok) {
-            return createFailure({
-                type: "REQUEST_FAILED",
-            });
-        }
-
         const response = await ((async () => {
             if (request.headers.get('Content-Type') !== 'application/json') {
                 return;
@@ -135,6 +130,20 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
                 return;
             }
         }))();
+
+        if (!request.ok) {
+            return createFailure({
+                /**
+                 * @type {typeof REQUEST_FAILED_ERROR}
+                 */
+                type: REQUEST_FAILED_ERROR,
+                /**
+                 * @type true
+                 */
+                isRequestFailure: true,
+                response,
+            });
+        }
 
         return createSuccess({
             response,
