@@ -254,27 +254,35 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
     this.callDeleteSpool = callDeleteSpool;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////// SELECT Spool-Item
-    this.callSelectSpool = function (toolIndex, databaseId, commitCurrentSpoolValues, responseHandler){
-        if (databaseId == null){
-            databaseId = -1;
+    const callSelectSpool = safeAsync(
+        /**
+         * @param {{
+         *  toolIndex: number;
+         *  spoolDbId?: number;
+         *  shouldCommitCurrentSpoolProgress?: boolean;
+         * }} params
+         */
+        async (params) => {
+            const { toolIndex, spoolDbId, shouldCommitCurrentSpoolProgress } = params;
+
+            const finalSpoolDbId = spoolDbId ?? -1;
+
+            const payload = {
+                databaseId: finalSpoolDbId,
+                toolIndex,
+                commitCurrentSpoolValues: shouldCommitCurrentSpoolProgress
+            }
+
+            return callApi(
+                `selectSpool`,
+                {
+                    method: "PUT",
+                    body: JSON.stringify(payload),
+                },
+            );
         }
-        var payload = {
-            databaseId: databaseId,
-            toolIndex: toolIndex,
-        }
-        if (commitCurrentSpoolValues !== undefined) {
-            payload.commitCurrentSpoolValues = commitCurrentSpoolValues;
-        }
-        $.ajax({
-            url: this.baseUrl + "plugin/" + this.pluginId + "/selectSpool",
-            dataType: "json",
-            contentType: "application/json; charset=UTF-8",
-            data: JSON.stringify(payload),
-            type: "PUT"
-        }).always(function( data ){
-            responseHandler( data );
-        });
-    }
+    );
+    this.callSelectSpool = callSelectSpool;
 
     /////////////////////////////////////////////////////////////////////////////////////////////////// ALLOWED TO PRINT
     this.allowedToPrint = function (responseHandler){

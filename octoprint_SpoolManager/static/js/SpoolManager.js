@@ -633,7 +633,7 @@ $(function() {
             return null;
         }
 
-        self.selectSpoolForSidebar = function(toolIndex, inputSpoolItem) {
+        self.selectSpoolForSidebar = async function(toolIndex, inputSpoolItem) {
             let commitCurrentSpoolValues;
             if (self.printerStateViewModel.isPrinting()) {
                 commitCurrentSpoolValues = confirm(
@@ -641,7 +641,7 @@ $(function() {
                     'Commit the usage of the print so far…\n' +
                     '"OK": …to the previously selected spool\n' +
                     '"Cancel": …to the new spool'
-                )
+                );
             }
 
             // Note: there was a commented-out code checking whether the selected spool
@@ -652,39 +652,53 @@ $(function() {
                     -1
             );
 
-            self.apiClient.callSelectSpool(toolIndex, databaseId, commitCurrentSpoolValues, function(responseData) {
-                const selectedSpoolData = responseData.selectedSpool;
-
-                if (selectedSpoolData == null) {
-                    // remove spool from toolIndex
-
-                    self.selectedSpoolsForSidebar()[toolIndex](null);
-                    return;
-                }
-
-                // remove the spool from the current toolIndex
-                const addedSpoolItem = self.spoolDialog.createSpoolItemForTable(selectedSpoolData);
-                const addedSpoolItemDatabaseId = addedSpoolItem.databaseId();
-                const selectedSpools = self.selectedSpoolsForSidebar();
-
-                for (let spoolIdx = 0; spoolIdx < selectedSpools.length; spoolIdx++) {
-                    const spoolItem = selectedSpools[spoolIdx]();
-
-                    if (
-                        spoolItem !== null &&
-                        spoolItem.databaseId() === addedSpoolItemDatabaseId
-                    ) {
-                        selectedSpools[spoolIdx](null);
-
-                        break;
-                    }
-                }
-
-                // assign to new (or same) toolIndex
-                if (toolIndex != -1) {
-                    self.selectedSpoolsForSidebar()[toolIndex](addedSpoolItem)
-                }
+            const queryResult = await self.apiClient.callSelectSpool({
+                toolIndex,
+                spoolDbId: databaseId,
+                shouldCommitCurrentSpoolProgress: commitCurrentSpoolValues,
             });
+
+            if (!queryResult.isSuccess) {
+                return self.showPopUp(
+                    "error",
+                    'Switch spool',
+                    'An unknown error occurred while requesting data',
+                    true,
+                );
+            }
+
+            const responseData = queryResult.payload.response;
+            const selectedSpoolData = responseData.selectedSpool;
+
+            if (selectedSpoolData == null) {
+                // remove spool from toolIndex
+
+                self.selectedSpoolsForSidebar()[toolIndex](null);
+                return;
+            }
+
+            // remove the spool from the current toolIndex
+            const addedSpoolItem = self.spoolDialog.createSpoolItemForTable(selectedSpoolData);
+            const addedSpoolItemDatabaseId = addedSpoolItem.databaseId();
+            const selectedSpools = self.selectedSpoolsForSidebar();
+
+            for (let spoolIdx = 0; spoolIdx < selectedSpools.length; spoolIdx++) {
+                const spoolItem = selectedSpools[spoolIdx]();
+
+                if (
+                    spoolItem !== null &&
+                    spoolItem.databaseId() === addedSpoolItemDatabaseId
+                ) {
+                    selectedSpools[spoolIdx](null);
+
+                    break;
+                }
+            }
+
+            // assign to new (or same) toolIndex
+            if (toolIndex != -1) {
+                self.selectedSpoolsForSidebar()[toolIndex](addedSpoolItem)
+            }
         }
 
         self.editSpoolFromSidebar = function(toolIndex, spoolItem){
@@ -1128,7 +1142,7 @@ $(function() {
             }
         }
 
-        self.onAfterTabChange = function(current, previous) {
+        self.onAfterTabChange = async function(current, previous) {
             const tabHashCode = window.location.hash;
             // QR-Code-Call: We can only contain -spoolId on the very first page
             if (!tabHashCode.includes("#tab_plugin_SpoolManager-spoolId")) {
@@ -1152,21 +1166,36 @@ $(function() {
             // - Open SpoolItem
             const commitCurrentSpoolValues = false;
 
-            self.apiClient.callSelectSpool(0, selectedSpoolId, commitCurrentSpoolValues, function(responseData) {
-                //Select the SpoolManager tab
-                $('a[href="#tab_plugin_SpoolManager"]').tab('show')
-                const spoolData = responseData["selectedSpool"];
-
-                if (spoolData == null) {
-                    return;
-                }
-
-                const spoolItem = self.spoolDialog.createSpoolItemForTable(spoolData);
-
-                spoolItem.selectedFromQRCode(true);
-                self.selectedSpoolsForSidebar()[0](spoolItem);
-                self.showSpoolDialogAction(spoolItem);
+            const queryResult = await self.apiClient.callSelectSpool({
+                toolIndex: 0,
+                spoolDbId: selectedSpoolId,
+                shouldCommitCurrentSpoolProgress: commitCurrentSpoolValues,
             });
+
+            if (!queryResult.isSuccess) {
+                return self.showPopUp(
+                    "error",
+                    'Switch spool',
+                    'An unknown error occurred while requesting data',
+                    true,
+                );
+            }
+
+            const responseData = queryResult.payload.response;
+            const spoolData = responseData.selectedSpool;
+
+            // Select the SpoolManager tab
+            $('a[href="#tab_plugin_SpoolManager"]').tab('show');
+
+            if (spoolData == null) {
+                return;
+            }
+
+            const spoolItem = self.spoolDialog.createSpoolItemForTable(spoolData);
+
+            spoolItem.selectedFromQRCode(true);
+            self.selectedSpoolsForSidebar()[0](spoolItem);
+            self.showSpoolDialogAction(spoolItem);
         }
     }
 
