@@ -66,12 +66,11 @@ const safeAsync = (asyncFn) => {
 };
 
 function SpoolManagerAPIClient(pluginId, baseUrl) {
-
     this.pluginId = pluginId;
     this.baseUrl = baseUrl;
 
     // see https://gomakethings.com/how-to-build-a-query-string-from-an-object-with-vanilla-js/
-    var _buildRequestQuery = function (data) {
+    const _buildRequestQuery = function (data) {
         // If the data is already a string, return it as-is
         if (typeof (data) === 'string') return data;
 
@@ -91,19 +90,11 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
 
     };
 
-    var _addApiKeyIfNecessary = function(urlContext){
+    const _addApiKeyIfNecessary = function(urlContext) {
         if (UI_API_KEY){
             urlContext = urlContext + "?apikey=" + UI_API_KEY;
         }
         return urlContext;
-    }
-
-    this.getExportUrl = function(exportType){
-        return _addApiKeyIfNecessary("./plugin/" + this.pluginId + "/exportSpools/" + exportType);
-    }
-
-    this.getSampleCSVUrl = function(){
-        return _addApiKeyIfNecessary("./plugin/" + this.pluginId + "/sampleCSV");
     }
 
     const buildApiUrl = (url) => {
@@ -167,7 +158,6 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
         });
     };
 
-    //////////////////////////////////////////////////////////////////////////////// LOAD DatabaseMetaData
     const loadDatabaseMetaData = safeAsync(async () => {
         return callApi(
             "loadDatabaseMetaData",
@@ -176,9 +166,6 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
             },
         );
     });
-    this.loadDatabaseMetaData = loadDatabaseMetaData;
-
-    //////////////////////////////////////////////////////////////////////////////// TEST DatabaseConnection
     const testDatabaseConnection = safeAsync(async (databaseSettings) => {
         const jsonPayload = ko.toJSON(databaseSettings);
 
@@ -190,9 +177,6 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
             },
         );
     });
-    this.testDatabaseConnection = testDatabaseConnection;
-
-    //////////////////////////////////////////////////////////////////////////////// CONFIRM DatabaseConnectionPoblem
     const confirmDatabaseProblemMessage = safeAsync(async () => {
         return callApi(
             "confirmDatabaseProblemMessage",
@@ -201,10 +185,6 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
             },
         );
     });
-    this.confirmDatabaseProblemMessage = confirmDatabaseProblemMessage;
-
-
-    //////////////////////////////////////////////////////////////////////////////// LOAD FILTERED/SORTED PrintJob-Items
     const callLoadSpoolsByQuery = safeAsync(async (tableQuery) => {
         const queryParams = _buildRequestQuery(tableQuery);
 
@@ -215,10 +195,6 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
             },
         );
     });
-    this.callLoadSpoolsByQuery = callLoadSpoolsByQuery;
-
-
-    //////////////////////////////////////////////////////////////////////////////////////////////////// SAVE Spool-Item
     const callSaveSpool = safeAsync(async (spoolItem) => {
         const jsonPayload = ko.toJSON(spoolItem);
 
@@ -230,9 +206,6 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
             },
         );
     });
-    this.callSaveSpool = callSaveSpool;
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////// DELETE Spool-Item
     const callDeleteSpool = safeAsync(async (spoolDbId) => {
         return callApi(
             `deleteSpool/${spoolDbId}`,
@@ -241,9 +214,6 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
             },
         );
     });
-    this.callDeleteSpool = callDeleteSpool;
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////// SELECT Spool-Item
     const callSelectSpool = safeAsync(
         /**
          * @param {{
@@ -272,9 +242,6 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
             );
         }
     );
-    this.callSelectSpool = callSelectSpool;
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////// ALLOWED TO PRINT
     const allowedToPrint = safeAsync(async () => {
         return callApi(
             `allowedToPrint`,
@@ -283,9 +250,6 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
             },
         );
     });
-    this.allowedToPrint = allowedToPrint;
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////// START PRINT CONFIRMED
     const startPrintConfirmed = safeAsync(async () => {
         return callApi(
             `startPrintConfirmed`,
@@ -294,9 +258,6 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
             },
         );
     });
-    this.startPrintConfirmed = startPrintConfirmed;
-
-    //////////////////////////////////////////////////////////////////////////////////////////////////// DELETE Database
     const callDeleteDatabase = safeAsync(
         /**
          * @param {{
@@ -316,9 +277,24 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
             );
         }
     );
+
+    this.loadDatabaseMetaData = loadDatabaseMetaData;
+    this.testDatabaseConnection = testDatabaseConnection;
+    this.confirmDatabaseProblemMessage = confirmDatabaseProblemMessage;
+    this.callLoadSpoolsByQuery = callLoadSpoolsByQuery;
+    this.callSaveSpool = callSaveSpool;
+    this.callDeleteSpool = callDeleteSpool;
+    this.callSelectSpool = callSelectSpool;
+    this.allowedToPrint = allowedToPrint;
+    this.startPrintConfirmed = startPrintConfirmed;
     this.callDeleteDatabase = callDeleteDatabase;
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////// DOWNLOAD Database
+    this.getExportUrl = function(exportType){
+        return _addApiKeyIfNecessary("./plugin/" + this.pluginId + "/exportSpools/" + exportType);
+    }
+    this.getSampleCSVUrl = function(){
+        return _addApiKeyIfNecessary("./plugin/" + this.pluginId + "/sampleCSV");
+    }
     this.getDownloadDatabaseUrl = function(exportType){
         return _addApiKeyIfNecessary("./plugin/" + this.pluginId + "/downloadDatabase");
     }
