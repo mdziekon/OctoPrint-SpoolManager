@@ -167,16 +167,6 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
         });
     };
 
-    //////////////////////////////////////////////////////////////////////////////// LOAD AdditionalSettingsValues
-    this.callAdditionalSettings = function (responseHandler){
-        var urlToCall = this.baseUrl + "api/plugin/"+this.pluginId+"?action=additionalSettingsValues";
-        $.ajax({
-            url: urlToCall,
-            type: "GET"
-        }).always(function( data ){
-            responseHandler(data)
-        });
-    }
     //////////////////////////////////////////////////////////////////////////////// LOAD DatabaseMetaData
     const loadDatabaseMetaData = safeAsync(async () => {
         return callApi(

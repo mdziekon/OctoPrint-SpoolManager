@@ -330,8 +330,6 @@ $(function() {
                 self.showExternalBusyIndicator(false);
             });
 
-        self.isFilamentManagerPluginAvailable = ko.observable(false);
-
         // - Import CSV
         self.csvFileUploadName = ko.observable();
         self.csvImportInProgress = ko.observable(false);
@@ -1093,14 +1091,6 @@ $(function() {
 // testing            self.spoolDialog.showDialog(null, handleSpoolDialogClose);
         }
 
-        self.onSettingsShown = function() {
-            if (self.isFilamentManagerPluginAvailable() == false){
-                self.apiClient.callAdditionalSettings(function(responseData) {
-                    self.isFilamentManagerPluginAvailable(responseData.isFilamentManagerPluginAvailable);
-                });
-            }
-        }
-
         // receive data from server
         self.onDataUpdaterPluginMessage = function (plugin, data) {
             if (plugin != PLUGIN_ID) {
@@ -1110,7 +1100,6 @@ $(function() {
             if ("initalData" == data.action){
 
                 self.pluginNotWorking(data.pluginNotWorking);
-                self.isFilamentManagerPluginAvailable(data.isFilamentManagerPluginAvailable);
                 var spoolsData = data.selectedSpools,
                     slot, spoolData, spoolItem;
                 for(var i=0; i<self.selectedSpoolsForSidebar().length; i++) {

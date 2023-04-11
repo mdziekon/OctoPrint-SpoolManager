@@ -588,7 +588,6 @@ class SpoolmanagerPlugin(
 		pluginNotWorking = connectionErrorResult != None
 		self._sendDataToClient(dict(action = "initalData",
 									selectedSpools = selectedSpoolsAsDicts,
-									isFilamentManagerPluginAvailable = self._filamentManagerPluginImplementation != None,
 									pluginNotWorking = pluginNotWorking
 									))
 		# data for the sidebar
@@ -766,12 +765,6 @@ class SpoolmanagerPlugin(
 				self._settings.set([], self.get_settings_defaults())
 				self._settings.save()
 				return flask.jsonify(self.get_settings_defaults())
-
-			# because of some race conditions, we can't push the initalDate during client-open event. So we provide the settings on request
-			if "additionalSettingsValues" == action:
-				return flask.jsonify({
-					"isFilamentManagerPluginAvailable":self._filamentManagerPluginImplementation != None
-				})
 
 	##~~ SettingsPlugin mixin
 	def get_settings_defaults(self):
