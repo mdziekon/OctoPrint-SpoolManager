@@ -296,17 +296,15 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
     this.allowedToPrint = allowedToPrint;
 
     /////////////////////////////////////////////////////////////////////////////////////////////////// START PRINT CONFIRMED
-    this.startPrintConfirmed = function (responseHandler){
-
-        $.ajax({
-            url: this.baseUrl + "plugin/" + this.pluginId + "/startPrintConfirmed",
-            dataType: "json",
-            contentType: "application/json; charset=UTF-8",
-            type: "GET"
-        }).always(function( data ){
-            responseHandler(data);
-        });
-    }
+    const startPrintConfirmed = safeAsync(async () => {
+        return callApi(
+            `startPrintConfirmed`,
+            {
+                method: "GET",
+            },
+        );
+    });
+    this.startPrintConfirmed = startPrintConfirmed;
 
     //////////////////////////////////////////////////////////////////////////////////////////////////// DELETE Database
     this.callDeleteDatabase = function(databaseType, databaseSettings, responseHandler){

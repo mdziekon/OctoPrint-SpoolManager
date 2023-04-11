@@ -828,9 +828,9 @@ $(function() {
         ///////////////////////////////////////////////////////////////////////////////////////// OCTOPRINT PRINT-BUTTON
         const origStartPrintFunction = self.printerStateViewModel.print;
         const newStartPrintFunction = async function confirmSpoolSelectionBeforeStartPrint() {
-            const queryResult = await self.apiClient.allowedToPrint();
+            const prePrintChecksQueryResult = await self.apiClient.allowedToPrint();
 
-            if (!queryResult.isSuccess) {
+            if (!prePrintChecksQueryResult.isSuccess) {
                 return self.showPopUp(
                     "error",
                     'Start print pre-checks',
@@ -845,7 +845,7 @@ $(function() {
                 toolOffsetEnabled,
                 bedOffsetEnabled,
                 enclosureOffsetEnabled,
-            } = queryResult.payload.response;
+            } = prePrintChecksQueryResult.payload.response;
 
             const printWarnings = (
                 metaOrAttributesMissing
@@ -926,9 +926,18 @@ $(function() {
                 }
             }
 
-            self.apiClient.startPrintConfirmed(() => {
-                origStartPrintFunction();
-            });
+            const startPrintQueryResult = await self.apiClient.startPrintConfirmed();
+
+            if (!startPrintQueryResult.isSuccess) {
+                return self.showPopUp(
+                    "error",
+                    'Start print setup',
+                    'An unknown error occurred while requesting data',
+                    true,
+                );
+            }
+
+            origStartPrintFunction();
         };
         self.printerStateViewModel.print = newStartPrintFunction;
 
