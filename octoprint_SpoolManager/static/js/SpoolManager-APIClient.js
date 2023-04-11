@@ -285,7 +285,7 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
     this.callSelectSpool = callSelectSpool;
 
     /////////////////////////////////////////////////////////////////////////////////////////////////// ALLOWED TO PRINT
-    const allowedToPrint = safeAsync(async (spoolDbId) => {
+    const allowedToPrint = safeAsync(async () => {
         return callApi(
             `allowedToPrint`,
             {
