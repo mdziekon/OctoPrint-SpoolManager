@@ -55,9 +55,7 @@ function DatabaseConnectionProblemDialog(){
 
     /////////////////////////////////////////////////////////////////////////////////////////////////// CLOSE
     self.closeDialog  = function(){
-        self.apiClient.confirmDatabaseProblemMessage(function(response){
-            // nothing special to do
-        });
+        void self.apiClient.confirmDatabaseProblemMessage();
         self.problemDialog.modal('hide');
         self.isVisible = false;
         self.closeDialogHandler();
