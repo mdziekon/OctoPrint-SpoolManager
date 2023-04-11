@@ -290,12 +290,18 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
     this.callDeleteDatabase = callDeleteDatabase;
 
     this.getExportUrl = function(exportType){
-        return _addApiKeyIfNecessary("./plugin/" + this.pluginId + "/exportSpools/" + exportType);
+        const endpointUrl = buildApiUrl(`exportSpools/${exportType}`);
+
+        return _addApiKeyIfNecessary(endpointUrl);
     }
-    this.getSampleCSVUrl = function(){
-        return _addApiKeyIfNecessary("./plugin/" + this.pluginId + "/sampleCSV");
+    this.getSampleCSVUrl = function(exportType){
+        const endpointUrl = buildApiUrl(`sampleCSV`);
+
+        return _addApiKeyIfNecessary(endpointUrl);
     }
     this.getDownloadDatabaseUrl = function(exportType){
-        return _addApiKeyIfNecessary("./plugin/" + this.pluginId + "/downloadDatabase");
+        const endpointUrl = buildApiUrl(`downloadDatabase`);
+
+        return _addApiKeyIfNecessary(endpointUrl);
     }
 }
