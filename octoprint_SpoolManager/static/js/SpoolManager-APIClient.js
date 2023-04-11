@@ -307,22 +307,26 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
     this.startPrintConfirmed = startPrintConfirmed;
 
     //////////////////////////////////////////////////////////////////////////////////////////////////// DELETE Database
-    this.callDeleteDatabase = function(databaseType, databaseSettings, responseHandler){
-        jsonPayload = ko.toJSON(databaseSettings)
-        $.ajax({
-            //url: API_BASEURL + "plugin/"+PLUGIN_ID+"/loadPrintJobHistory",
-            url: this.baseUrl + "plugin/"+this.pluginId+"/deleteDatabase/"+databaseType,
-            dataType: "json",
-            contentType: "application/json; charset=UTF-8",
-            data: jsonPayload,
-            type: "POST"
-        }).always(function( data ){
-            responseHandler(data)
-            //shoud be done by the server to make sure the server is informed countdownDialog.modal('hide');
-            //countdownDialog.modal('hide');
-            //countdownCircle = null;
-        });
-    }
+    const callDeleteDatabase = safeAsync(
+        /**
+         * @param {{
+         *  databaseType: string;
+         *  databaseSettings: unknown;
+         * }} params
+         */
+        async (params) => {
+            const { databaseType, databaseSettings } = params;
+
+            return callApi(
+                `deleteDatabase/${databaseType}`,
+                {
+                    method: "POST",
+                    body: ko.toJSON(databaseSettings),
+                },
+            );
+        }
+    );
+    this.callDeleteDatabase = callDeleteDatabase;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////// DOWNLOAD Database
     this.getDownloadDatabaseUrl = function(exportType){

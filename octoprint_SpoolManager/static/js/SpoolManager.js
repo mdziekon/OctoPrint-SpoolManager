@@ -273,7 +273,7 @@ $(function() {
             self.showExternalBusyIndicator(false);
         }
 
-        self.deleteDatabaseAction = function(databaseType) {
+        self.deleteDatabaseAction = async function(databaseType) {
             const confirmationResult = confirm("Do you really want to delete all SpoolManager data?");
 
             if (!confirmationResult) {
@@ -282,9 +282,21 @@ $(function() {
 
             const databaseSettings = self.buildDatabaseSettings();
 
-            self.apiClient.callDeleteDatabase(databaseType, databaseSettings, function(responseData) {
-                self.spoolItemTableHelper.reloadItems();
+            const requestResult = await self.apiClient.callDeleteDatabase({
+                databaseType,
+                databaseSettings,
             });
+
+            if (!requestResult.isSuccess) {
+                return self.showPopUp(
+                    "error",
+                    'Recreate Database',
+                    'An unknown error occurred while performing a request',
+                    true,
+                );
+            }
+
+            self.spoolItemTableHelper.reloadItems();
         };
 
         $("#spoolmanger-settings-tab")
