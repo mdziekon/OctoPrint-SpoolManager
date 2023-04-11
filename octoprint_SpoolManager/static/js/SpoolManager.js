@@ -827,92 +827,107 @@ $(function() {
 
         ///////////////////////////////////////////////////////////////////////////////////////// OCTOPRINT PRINT-BUTTON
         const origStartPrintFunction = self.printerStateViewModel.print;
-        const newStartPrintFunction = function confirmSpoolSelectionBeforeStartPrint() {
-            self.apiClient.allowedToPrint(function(responseData) {
-                var result = responseData.result, itemList;
+        const newStartPrintFunction = async function confirmSpoolSelectionBeforeStartPrint() {
+            const queryResult = await self.apiClient.allowedToPrint();
 
-                const printWarnings = (
-                    responseData.metaOrAttributesMissing
-                    ? {
-                        header: "ATTENTION: Needed filament could not calculated (missing metadata or spool-fields)\n\n",
-                        missingMeta: " (maybe)",
-                    }
-                    : {
-                        header: "",
-                        missingMeta: "",
-                    }
+            if (!queryResult.isSuccess) {
+                return self.showPopUp(
+                    "error",
+                    'Start print pre-checks',
+                    'An unknown error occurred while requesting data',
+                    true,
+                );
+            }
+
+            const {
+                result,
+                metaOrAttributesMissing,
+                toolOffsetEnabled,
+                bedOffsetEnabled,
+                enclosureOffsetEnabled,
+            } = queryResult.payload.response;
+
+            const printWarnings = (
+                metaOrAttributesMissing
+                ? {
+                    header: "ATTENTION: Needed filament could not calculated (missing metadata or spool-fields)\n\n",
+                    missingMeta: " (maybe)",
+                }
+                : {
+                    header: "",
+                    missingMeta: "",
+                }
+            );
+
+            if (result.noSpoolSelected.length) {
+                const toolsWithMissingSpools = result.noSpoolSelected.map((item) => {
+                    return `- Tool ${item.toolIndex}`;
+                });
+
+                const hasConfirmedPrintWithoutSpoolsSelected = confirm(
+                    printWarnings.header +
+                    'There are no spools selected for the following tools ' +
+                    'despite them being used' + printWarnings.missingMeta + ' by this print:\n' +
+                    toolsWithMissingSpools.join('\n') + '\n\n' +
+                    'Do you want to start the print without selected spools?'
                 );
 
-                if (result.noSpoolSelected.length) {
-                    const toolsWithMissingSpools = result.noSpoolSelected.map((item) => {
-                        return `- Tool ${item.toolIndex}`;
-                    });
-
-                    const hasConfirmedPrintWithoutSpoolsSelected = confirm(
-                        printWarnings.header +
-                        'There are no spools selected for the following tools ' +
-                        'despite them being used' + printWarnings.missingMeta + ' by this print:\n' +
-                        toolsWithMissingSpools.join('\n') + '\n\n' +
-                        'Do you want to start the print without selected spools?'
-                    );
-
-                    if (!hasConfirmedPrintWithoutSpoolsSelected) {
-                        return;
-                    }
+                if (!hasConfirmedPrintWithoutSpoolsSelected) {
+                    return;
                 }
+            }
 
-                if (result.filamentNotEnough.length) {
-                    const inadequateFilamentSpools = result.filamentNotEnough.map((item) => {
-                        return `- ${buildSpoolLabel(item)}`;
-                    });
-
-                    const hasConfirmedPrintWithInadequateFilamentSpools = confirm(
-                        printWarnings.header +
-                        'The following selected spools do not have enough remaining filament' + printWarnings.missingMeta + ':\n' +
-                        inadequateFilamentSpools.join('\n') + '\n\n' +
-                        'Do you want to start the print anyway?'
-                    );
-
-                    if (!hasConfirmedPrintWithInadequateFilamentSpools) {
-                        return;
-                    }
-                }
-
-                if (result.reminderSpoolSelection.length) {
-                    const selectedSpools = result.reminderSpoolSelection.map((item) => {
-                        const spoolLabel = buildSpoolLabel(item);
-                        const toolTempOffsetText = (
-                            responseData.toolOffsetEnabled && item.toolOffset != null
-                                ? "\n--  Tool Offset:  " + item.toolOffset + '\u00B0'
-                                : ""
-                        );
-                        const bedTempOffsetText = (
-                            responseData.bedOffsetEnabled && item.bedOffset != null
-                                ? "\n--  Bed Offset:  " + item.bedOffset + '\u00B0'
-                                : ""
-                        );
-                        const enclosureTempOffsetText = (
-                            responseData.enclosureOffsetEnabled && item.enclosureOffset != null
-                                ? "\n--  Enclosure Offset:  " + item.enclosureOffset + '\u00B0'
-                                : ""
-                        );
-
-                        return `- ${spoolLabel}${toolTempOffsetText}${bedTempOffsetText}${enclosureTempOffsetText}`;
-                    });
-
-                    const hasConfirmedPrint = confirm(
-                        "Do you want to start the print with following selected spools?\n" +
-                        selectedSpools.join('\n')
-                    );
-
-                    if (!hasConfirmedPrint) {
-                        return;
-                    }
-                }
-
-                self.apiClient.startPrintConfirmed(() => {
-                    origStartPrintFunction();
+            if (result.filamentNotEnough.length) {
+                const inadequateFilamentSpools = result.filamentNotEnough.map((item) => {
+                    return `- ${buildSpoolLabel(item)}`;
                 });
+
+                const hasConfirmedPrintWithInadequateFilamentSpools = confirm(
+                    printWarnings.header +
+                    'The following selected spools do not have enough remaining filament' + printWarnings.missingMeta + ':\n' +
+                    inadequateFilamentSpools.join('\n') + '\n\n' +
+                    'Do you want to start the print anyway?'
+                );
+
+                if (!hasConfirmedPrintWithInadequateFilamentSpools) {
+                    return;
+                }
+            }
+
+            if (result.reminderSpoolSelection.length) {
+                const selectedSpools = result.reminderSpoolSelection.map((item) => {
+                    const spoolLabel = buildSpoolLabel(item);
+                    const toolTempOffsetText = (
+                        toolOffsetEnabled && item.toolOffset != null
+                            ? "\n--  Tool Offset:  " + item.toolOffset + '\u00B0'
+                            : ""
+                    );
+                    const bedTempOffsetText = (
+                        bedOffsetEnabled && item.bedOffset != null
+                            ? "\n--  Bed Offset:  " + item.bedOffset + '\u00B0'
+                            : ""
+                    );
+                    const enclosureTempOffsetText = (
+                        enclosureOffsetEnabled && item.enclosureOffset != null
+                            ? "\n--  Enclosure Offset:  " + item.enclosureOffset + '\u00B0'
+                            : ""
+                    );
+
+                    return `- ${spoolLabel}${toolTempOffsetText}${bedTempOffsetText}${enclosureTempOffsetText}`;
+                });
+
+                const hasConfirmedPrint = confirm(
+                    "Do you want to start the print with following selected spools?\n" +
+                    selectedSpools.join('\n')
+                );
+
+                if (!hasConfirmedPrint) {
+                    return;
+                }
+            }
+
+            self.apiClient.startPrintConfirmed(() => {
+                origStartPrintFunction();
             });
         };
         self.printerStateViewModel.print = newStartPrintFunction;

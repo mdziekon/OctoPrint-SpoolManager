@@ -285,17 +285,15 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
     this.callSelectSpool = callSelectSpool;
 
     /////////////////////////////////////////////////////////////////////////////////////////////////// ALLOWED TO PRINT
-    this.allowedToPrint = function (responseHandler){
-
-        $.ajax({
-            url: this.baseUrl + "plugin/" + this.pluginId + "/allowedToPrint",
-            dataType: "json",
-            contentType: "application/json; charset=UTF-8",
-            type: "GET"
-        }).always(function( data ){
-            responseHandler(data);
-        });
-    }
+    const allowedToPrint = safeAsync(async (spoolDbId) => {
+        return callApi(
+            `allowedToPrint`,
+            {
+                method: "GET",
+            },
+        );
+    });
+    this.allowedToPrint = allowedToPrint;
 
     /////////////////////////////////////////////////////////////////////////////////////////////////// START PRINT CONFIRMED
     this.startPrintConfirmed = function (responseHandler){
