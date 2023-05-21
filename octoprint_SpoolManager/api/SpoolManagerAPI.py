@@ -909,10 +909,6 @@ class SpoolManagerAPI(octoprint.plugin.BlueprintPlugin):
 		# 	"colors": ["", "#123", "#456"],
 		# 	"labels": ["", "good", "bad"]
 		# }
-		selectedSpoolsAsDicts = [
-			(None if selectedSpool is None else Transformer.transformSpoolModelToDict(selectedSpool))
-			for selectedSpool in self.loadSelectedSpools()
-		]
 
 		return flask.jsonify({
 								# "databaseConnectionProblem": self._databaseManager.isConnected() == False,
@@ -920,6 +916,20 @@ class SpoolManagerAPI(octoprint.plugin.BlueprintPlugin):
 								"catalogs": catalogs,
 								"totalItemCount": totalItemCount,
 								"allSpools": allSpoolsAsDict,
+							})
+
+	##################################################################################################   LOAD SELECTED SPOOLS
+	@octoprint.plugin.BlueprintPlugin.route("/loadSelectedSpools", methods=["GET"])
+	def handleLoadSelectedSpools(self):
+
+		self._logger.debug("API Load selected spools")
+
+		selectedSpoolsAsDicts = [
+			(None if selectedSpool is None else Transformer.transformSpoolModelToDict(selectedSpool))
+			for selectedSpool in self.loadSelectedSpools()
+		]
+
+		return flask.jsonify({
 								"selectedSpools": selectedSpoolsAsDicts
 							})
 

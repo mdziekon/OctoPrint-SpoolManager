@@ -180,6 +180,14 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
             },
         );
     });
+    const callLoadSelectedSpools = safeAsync(async () => {
+        return callApi(
+            "loadSelectedSpools",
+            {
+                method: "GET",
+            },
+        );
+    });
     const callLoadSpoolsByQuery = safeAsync(async (tableQuery) => {
         const queryParams = _buildRequestQuery(tableQuery);
 
@@ -276,6 +284,7 @@ function SpoolManagerAPIClient(pluginId, baseUrl) {
     this.loadDatabaseMetaData = loadDatabaseMetaData;
     this.testDatabaseConnection = testDatabaseConnection;
     this.confirmDatabaseProblemMessage = confirmDatabaseProblemMessage;
+    this.callLoadSelectedSpools = callLoadSelectedSpools;
     this.callLoadSpoolsByQuery = callLoadSpoolsByQuery;
     this.callSaveSpool = callSaveSpool;
     this.callDeleteSpool = callDeleteSpool;
