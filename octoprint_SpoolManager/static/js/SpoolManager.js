@@ -105,6 +105,7 @@ $(function() {
             managerViewModel: self,
         });
 
+        let hasInitializedSpoolsSelector = false;
 
         //////////////////////////////////////////////////////////////////////////////////////////////// HELPER FUNCTION
         const handleSpoolDialogClose = (shouldTableReload, specialAction, currentSpoolItem) => {
@@ -117,7 +118,7 @@ $(function() {
             if (shouldTableReload == true) {
                 self.spoolItemTableHelper.reloadItems();
                 // TODO auto reload of sidebar spools without loosing selection
-                self.loadSpoolsForSidebar();
+                self.loadSidebarSpoolWidgetsData();
             }
         }
 
@@ -553,6 +554,8 @@ $(function() {
                 );
             }
 
+            hasInitializedSpoolsSelector = true;
+
             const responseData = loadResult.payload.response;
             const allSpoolData = responseData.allSpools;
 
@@ -617,7 +620,7 @@ $(function() {
             }
         };
 
-        self.loadSpoolsForSidebar = async function() {
+        self.loadSidebarSpoolWidgetsData = async function() {
             await Promise.all([
                 loadSpoolSelectorData(),
                 loadCurrentSelectedSpoolsData(),
@@ -743,6 +746,11 @@ $(function() {
             if (spoolItem == null){
                 alert("Something is wrong. No Spool is selected to edit from sidebar!")
             }
+
+            if (!hasInitializedSpoolsSelector) {
+                loadSpoolSelectorData();
+            }
+
             self.showSpoolDialogAction(spoolItem);
         }
 
@@ -752,11 +760,14 @@ $(function() {
         }
 
         self.sidebarOpenSelectSpoolDialog = function(toolIndex, spoolItem){
-
             /* needed for Filter-Search dropdown-menu */
             $('.dropdown-menu.keep-open').click(function(e) {
                 e.stopPropagation();
             });
+
+            if (!hasInitializedSpoolsSelector) {
+                loadSpoolSelectorData();
+            }
 
             self.sidebarSelectSpoolModalSpoolItem(spoolItem);
             self.sidebarSelectSpoolModalToolIndex(toolIndex);
@@ -1079,8 +1090,16 @@ $(function() {
                 // no additional reset function needed in V2
             });
 
-            // Load all Spools
-            self.loadSpoolsForSidebar();
+            const isLazyLoadSpoolSelectorDataEnabled = self.pluginSettings.performanceLazyLoadSpoolSelectorData();
+
+            if (isLazyLoadSpoolSelectorDataEnabled) {
+                // Load selected spools
+                loadCurrentSelectedSpoolsData();
+            } else {
+                // Load all Spools & selected spools
+                self.loadSidebarSpoolWidgetsData();
+            }
+
             // Edit Spool Dialog Binding
             self.spoolDialog.initBinding(self.apiClient, self.pluginSettings, self.printerProfilesViewModel);
             // Import Dialog
@@ -1151,7 +1170,7 @@ $(function() {
             }
             if ("reloadTable and sidebarSpools" == data.action){
                 self.spoolItemTableHelper.reloadItems();
-                self.loadSpoolsForSidebar();
+                self.loadSidebarSpoolWidgetsData();
                 return;
             }
             if ("csvImportStatus" == data.action){
