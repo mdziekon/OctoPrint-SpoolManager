@@ -1109,7 +1109,9 @@ $(function() {
             });
 
             // needed after the tool-count is changed
-            self.settingsViewModel.printerProfiles.currentProfileData.subscribe(self.loadSpoolsForSidebar);
+            self.settingsViewModel.printerProfiles.currentProfileData.subscribe(() => {
+                updateAvailableSpoolSlots();
+            });
         }
 
         self.onAfterBinding = function() {
