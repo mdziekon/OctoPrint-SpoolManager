@@ -766,7 +766,9 @@ $(function() {
             });
 
             if (!hasInitializedSpoolsSelector) {
-                loadSpoolSelectorData();
+                loadSpoolSelectorData().then(() => {
+                    self.selectionSpoolDialog.modal('layout');
+                });
             }
 
             self.sidebarSelectSpoolModalSpoolItem(spoolItem);
