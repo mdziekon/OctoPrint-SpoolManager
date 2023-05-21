@@ -783,6 +783,7 @@ class SpoolmanagerPlugin(
 		settings[SettingsKeys.SETTINGS_KEY_WARN_IF_FILAMENT_NOT_ENOUGH] = True
 		settings[SettingsKeys.SETTINGS_KEY_CURRENCY_SYMBOL] = "€"
 		settings[SettingsKeys.SETTINGS_KEY_SAFETY_LENGTH] = 0
+		settings[SettingsKeys.SETTINGS_KEY_PERFORMANCE_LAZY_LOAD_SPOOL_SELECTOR_DATA] = False
 
 		## QR-Code
 		settings[SettingsKeys.SETTINGS_KEY_QR_CODE_ENABLED] = True
