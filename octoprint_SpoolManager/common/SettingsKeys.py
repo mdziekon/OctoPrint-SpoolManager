@@ -15,6 +15,8 @@ class SettingsKeys():
 
 	SETTINGS_KEY_SAFETY_LENGTH = "safetyLength" # in mm e.g. ptfe-tube
 
+	SETTINGS_KEY_PERFORMANCE_LAZY_LOAD_SPOOL_SELECTOR_DATA = "performanceLazyLoadSpoolSelectorData"
+
 	## QR - Code
 	SETTINGS_KEY_QR_CODE_ENABLED = "qrCodeEnabled"
 	SETTINGS_KEY_QR_CODE_USE_URL_PREFIX = "qrCodeUseURLPrefix"

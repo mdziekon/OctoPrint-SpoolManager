@@ -78,7 +78,7 @@ $(function() {
             // Initialize localStorage with default value
             localStorage[storageKey] = `${DEFAULT_TABLE_PAGE_SIZE}`;
         } else {
-            viewModel.spoolItemTableHelper.selectedPageSize(localStorage[storageKey]);
+            viewModel.spoolItemTableHelper.selectedPageSize(Number(localStorage[storageKey]));
         }
 
         viewModel.spoolItemTableHelper.selectedPageSize.subscribe(function(newValue) {
@@ -105,6 +105,7 @@ $(function() {
             managerViewModel: self,
         });
 
+        let hasInitializedSpoolsSelector = false;
 
         //////////////////////////////////////////////////////////////////////////////////////////////// HELPER FUNCTION
         const handleSpoolDialogClose = (shouldTableReload, specialAction, currentSpoolItem) => {
@@ -117,7 +118,7 @@ $(function() {
             if (shouldTableReload == true) {
                 self.spoolItemTableHelper.reloadItems();
                 // TODO auto reload of sidebar spools without loosing selection
-                self.loadSpoolsForSidebar();
+                self.loadSidebarSpoolWidgetsData();
             }
         }
 
@@ -533,26 +534,7 @@ $(function() {
             self.selectSpoolForSidebar(toolIndex, null);
         }
 
-        self.loadSpoolsForSidebar = async function() {
-            // update filament list length
-            var currentProfileData = self.settingsViewModel.printerProfiles.currentProfileData(),
-                numExtruders = (currentProfileData ? currentProfileData.extruder.count() : 0),
-                currentSelectedSpools = self.selectedSpoolsForSidebar().length,
-                diff = numExtruders - currentSelectedSpools,
-                i, item;
-            if (diff !== 0) {
-                if (diff > 0) {
-                    for (i = 0; i < diff; i++) {
-                        self.selectedSpoolsForSidebar().push(ko.observable(null));
-                    }
-                } else if (diff < 0) {
-                    for (i = 0; i > diff; i--) {
-                        self.selectedSpoolsForSidebar().pop();
-                    }
-                }
-                self.selectedSpoolsForSidebar.valueHasMutated();
-            }
-
+        const loadSpoolSelectorData = async function () {
             const fetchSpoolsQueryParams = {
                 filterName: "all",
                 from: 0,
@@ -566,11 +548,13 @@ $(function() {
             if (!loadResult.isSuccess) {
                 return self.showPopUp(
                     "error",
-                    'Load sidebar data',
+                    'Load spool selector data',
                     'An unknown error occurred while loading data',
                     true,
                 );
             }
+
+            hasInitializedSpoolsSelector = true;
 
             const responseData = loadResult.payload.response;
             const allSpoolData = responseData.allSpools;
@@ -584,16 +568,63 @@ $(function() {
                 return self.spoolDialog.createSpoolItemForTable(spoolData);
             });
             self.allSpoolsForSidebar(allSpoolItems);
+        };
 
+        const updateAvailableSpoolSlots = () => {
+            const currentProfileData = self.settingsViewModel.printerProfiles.currentProfileData();
+            const currentExtrudersCount = (currentProfileData ? currentProfileData.extruder.count() : 0);
+            const previousAvailableSpoolSlots = self.selectedSpoolsForSidebar().length;
+            const spoolSlotsCountDifference = currentExtrudersCount - previousAvailableSpoolSlots;
+
+            if (spoolSlotsCountDifference === 0) {
+                return;
+            }
+
+            if (spoolSlotsCountDifference > 0) {
+                for (let i = 0; i < spoolSlotsCountDifference; i++) {
+                    self.selectedSpoolsForSidebar().push(ko.observable(null));
+                }
+            } else if (spoolSlotsCountDifference < 0) {
+                for (let i = 0; i > spoolSlotsCountDifference; i--) {
+                    self.selectedSpoolsForSidebar().pop();
+                }
+            }
+            self.selectedSpoolsForSidebar.valueHasMutated();
+        };
+
+        const loadCurrentSelectedSpoolsData = async function () {
+            updateAvailableSpoolSlots();
+
+            const loadResult = await self.apiClient.callLoadSelectedSpools();
+
+            if (!loadResult.isSuccess) {
+                return self.showPopUp(
+                    "error",
+                    'Load current selected spools data',
+                    'An unknown error occurred while loading data',
+                    true,
+                );
+            }
+
+            const responseData = loadResult.payload.response;
             const spoolsData = responseData.selectedSpools;
 
-            for (let spoolIdx = 0; spoolIdx < self.selectedSpoolsForSidebar().length; spoolIdx++) {
-                const slot = self.selectedSpoolsForSidebar()[spoolIdx];
+            const selectedSpoolSlots = self.selectedSpoolsForSidebar();
+
+            // Populate available slots (based on extruders count) with API data
+            for (let spoolIdx = 0; spoolIdx < selectedSpoolSlots.length; spoolIdx++) {
                 const spoolData = (spoolIdx < spoolsData.length) ? spoolsData[spoolIdx] : null;
                 const spoolItem = spoolData ? self.spoolDialog.createSpoolItemForTable(spoolData) : null;
 
-                slot(spoolItem);
+                selectedSpoolSlots[spoolIdx](spoolItem);
             }
+        };
+
+        self.loadSidebarSpoolWidgetsData = async function() {
+            await Promise.all([
+                loadSpoolSelectorData(),
+                loadCurrentSelectedSpoolsData(),
+            ]);
 
             // Pre sorting in Selection-Dialog
             // self.sidebarFilterSorter.sortSpoolArray("displayName", "ascending");
@@ -715,6 +746,11 @@ $(function() {
             if (spoolItem == null){
                 alert("Something is wrong. No Spool is selected to edit from sidebar!")
             }
+
+            if (!hasInitializedSpoolsSelector) {
+                loadSpoolSelectorData();
+            }
+
             self.showSpoolDialogAction(spoolItem);
         }
 
@@ -724,11 +760,16 @@ $(function() {
         }
 
         self.sidebarOpenSelectSpoolDialog = function(toolIndex, spoolItem){
-
             /* needed for Filter-Search dropdown-menu */
             $('.dropdown-menu.keep-open').click(function(e) {
                 e.stopPropagation();
             });
+
+            if (!hasInitializedSpoolsSelector) {
+                loadSpoolSelectorData().then(() => {
+                    self.selectionSpoolDialog.modal('layout');
+                });
+            }
 
             self.sidebarSelectSpoolModalSpoolItem(spoolItem);
             self.sidebarSelectSpoolModalToolIndex(toolIndex);
@@ -1051,8 +1092,16 @@ $(function() {
                 // no additional reset function needed in V2
             });
 
-            // Load all Spools
-            self.loadSpoolsForSidebar();
+            const isLazyLoadSpoolSelectorDataEnabled = self.pluginSettings.performanceLazyLoadSpoolSelectorData();
+
+            if (isLazyLoadSpoolSelectorDataEnabled) {
+                // Load selected spools
+                loadCurrentSelectedSpoolsData();
+            } else {
+                // Load all Spools & selected spools
+                self.loadSidebarSpoolWidgetsData();
+            }
+
             // Edit Spool Dialog Binding
             self.spoolDialog.initBinding(self.apiClient, self.pluginSettings, self.printerProfilesViewModel);
             // Import Dialog
@@ -1081,7 +1130,9 @@ $(function() {
             });
 
             // needed after the tool-count is changed
-            self.settingsViewModel.printerProfiles.currentProfileData.subscribe(self.loadSpoolsForSidebar);
+            self.settingsViewModel.printerProfiles.currentProfileData.subscribe(() => {
+                updateAvailableSpoolSlots();
+            });
         }
 
         self.onAfterBinding = function() {
@@ -1121,7 +1172,7 @@ $(function() {
             }
             if ("reloadTable and sidebarSpools" == data.action){
                 self.spoolItemTableHelper.reloadItems();
-                self.loadSpoolsForSidebar();
+                self.loadSidebarSpoolWidgetsData();
                 return;
             }
             if ("csvImportStatus" == data.action){
