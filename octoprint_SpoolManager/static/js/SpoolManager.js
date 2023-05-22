@@ -78,7 +78,7 @@ $(function() {
             // Initialize localStorage with default value
             localStorage[storageKey] = `${DEFAULT_TABLE_PAGE_SIZE}`;
         } else {
-            viewModel.spoolItemTableHelper.selectedPageSize(localStorage[storageKey]);
+            viewModel.spoolItemTableHelper.selectedPageSize(Number(localStorage[storageKey]));
         }
 
         viewModel.spoolItemTableHelper.selectedPageSize.subscribe(function(newValue) {
