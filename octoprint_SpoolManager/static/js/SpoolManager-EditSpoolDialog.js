@@ -309,15 +309,8 @@ function SpoolManagerEditSpoolDialog(props){
     self.closeDialogHandler = null;
     self.spoolItemForEditing = null;
     self.templateSpools = ko.observableArray([]);
-
     self.noteEditor = null;
-
-    // Do I need these viewModels?
-    self.firstUseDatePickerModel = null;
-    self.lastUseDatePickerModel = null;
-    self.purchasedOndatePickerModel = null;
     self.labelsViewModel = null;
-    self.filamentColorViewModel = null;
     self.materialViewModel = null;
 
     self.catalogs = null;
