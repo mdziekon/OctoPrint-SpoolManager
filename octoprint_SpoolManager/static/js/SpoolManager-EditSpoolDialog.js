@@ -1,3 +1,6 @@
+const FORMAT_DATETIME_LOCAL = "YYYY-MM-DDTHH:mm";
+const FORMAT_DATE = "YYYY-MM-DD";
+
 // Dialog functionality
 function SpoolManagerEditSpoolDialog(props){
     const { managerViewModel } = props;
@@ -346,27 +349,30 @@ function SpoolManagerEditSpoolDialog(props){
         );
     }
 
-    self._checkDateTimeFormats = function(){
+    self._checkDateTimeFormats = function() {
+        const firstUse = self.spoolItemForEditing.firstUseKO() || "";
+        const lastUse = self.spoolItemForEditing.lastUseKO() || "";
+        const purchasedOn = self.spoolItemForEditing.purchasedOnKO() || "";
 
-        // "First/LastUse", "purchasedOn"
-        let firstUse = self.spoolItemForEditing.firstUseKO()
-        if (firstUse && firstUse.trim().length != 0){
-            if (moment(firstUse, "YYYY-MM-DDTHH:mm").isValid() == false){
-                return false;
-            }
+        if (
+            firstUse.trim().length > 0 &&
+            !(moment(firstUse, FORMAT_DATETIME_LOCAL).isValid())
+        ) {
+            return false
         }
-        let lastUse = self.spoolItemForEditing.lastUseKO()
-        if (lastUse && lastUse.trim().length != 0){
-            if (moment(lastUse, "YYYY-MM-DDTHH:mm").isValid() == false){
-                return false;
-            }
+        if (
+            lastUse.trim().length > 0 &&
+            !(moment(lastUse, FORMAT_DATETIME_LOCAL).isValid())
+        ) {
+            return false;
         }
-        let purchasedOn = self.spoolItemForEditing.purchasedOnKO()
-        if (purchasedOn && purchasedOn.trim().length != 0){
-            if (moment(purchasedOn, "YYYY-MM-DD").isValid() == false){
-                return false;
-            }
+        if (
+            purchasedOn.trim().length > 0 &&
+            !(moment(purchasedOn, FORMAT_DATE).isValid())
+        ) {
+            return false;
         }
+
         return true;
     }
 
