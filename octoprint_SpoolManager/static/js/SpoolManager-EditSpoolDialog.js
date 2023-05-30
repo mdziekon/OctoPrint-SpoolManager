@@ -331,14 +331,10 @@ function SpoolManagerEditSpoolDialog(props){
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////// HELPER
 
     self.isFormValidForSubmit = ko.pureComputed(function () {
-        if (self._checkMandatoryFields() == false){
-            return false;
-        }
-        if (self._checkDateTimeFormats() == false){
-            return false;
-        }
-
-        return true;
+        return (
+            self._checkMandatoryFields() &&
+            self._checkDateTimeFormats()
+        );
     });
 
     self._checkMandatoryFields = function() {
