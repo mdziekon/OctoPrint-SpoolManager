@@ -258,7 +258,7 @@
                         <span class="color-preview" data-bind="style: {'background-color': color}, attr: { title: colorName }" ></span>
                         <span style="vertical-align:super" data-bind="text: material"></span>
                     </div></td>
-                <td data-bind="visible: $root.tableAttributeVisibility.lastFirstUse"><span data-bind="text: formatOnlyDate($data, 'lastUse')"></span><br><span data-bind="text: formatOnlyDate($data, 'firstUse')"></span></td>
+                <td data-bind="visible: $root.tableAttributeVisibility.lastFirstUse"><span data-bind="text: getDateFromAttribute($data, 'lastUse')"></span><br><span data-bind="text: getDateFromAttribute($data, 'firstUse')"></span></td>
                 <td data-bind="visible: $root.tableAttributeVisibility.weight" style="text-align: right;"><span data-bind="text: totalWeight, attr: {title: $root.buildTooltipForSpoolItem($data, 'Total weight: ', 'totalWeight')}"></span>g<br/>
 {#                                                                                           <span data-bind="text: usedWeight, attr: {title: $root.buildTooltipForSpoolItem($data, 'Used weight: ', 'usedWeight')}"></span>g<br/>#}
                                                                                            <span data-bind="text: remainingWeight, attr: {title: $root.buildTooltipForSpoolItem($data, 'Remaining weight: ', 'remainingWeight')}"></span>g<br>

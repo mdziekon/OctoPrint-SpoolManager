@@ -52,17 +52,6 @@ function SpoolManagerEditSpoolDialog(props){
         // if we use the Item for Editing we need to initialise the widget-model as well , e.g. Option-Values, Suggestion-List
         // if we just use this Item in readonly-mode we need simple ko.observer
 
-        // FormatHelperFunction
-        formatOnlyDate = function (data, dateBindingName) {
-            var dateValue = data[dateBindingName];
-            if (dateValue != null && dateValue() != null && dateValue() != ""){
-                dateValue = dateValue();
-                var result = dateValue.split(" ")[0];
-                return result
-            }
-            return "";
-        };
-
         this.selectedFromQRCode = ko.observable(false);
         this.selectedForTool = ko.observable(0);    // Default Tool 0
         this.isFilteredForSelection = ko.observable(false);
