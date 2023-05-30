@@ -394,27 +394,6 @@ function SpoolManagerEditSpoolDialog(props){
         return (!totalCombinedWeight || (""+totalCombinedWeight).trim().length === 0) == false;
     }
 
-    // self.transform2Date = function(dateValue){
-    //     if (dateValue == null){
-    //         return null;
-    //     }
-    //     if (dateValue instanceof Date){
-    //         return dateValue;
-    //     }
-    //     return new Date(dateValue);
-    // }
-
-//    self.getValueOrDefault = function(data, attribute, defaultValue){
-//        if (data == null){
-//            return defaultValue;
-//        }
-//        var value = data[attribute];
-//        if (value == null || value == undefine){
-//            return defaultValue;
-//        }
-//        return value;
-//    }
-
     function _roundTo(x, precision) {
         var increments = Math.pow(10, precision);
         return Math.round((x + Number.EPSILON) * increments) / increments;
