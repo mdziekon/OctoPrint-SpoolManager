@@ -329,23 +329,15 @@ function SpoolManagerEditSpoolDialog(props){
 
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////// HELPER
-
-    self.isFormValidForSubmit = ko.pureComputed(function () {
-        return (
-            self._checkMandatoryFields() &&
-            self._checkDateTimeFormats()
-        );
-    });
-
-    self._checkMandatoryFields = function() {
+    const isEveryMandatoryFieldValid = () => {
         return (
             self.isDisplayNamePresent() &&
             self.isColorNamePresent() &&
             self.isTotalCombinedWeightPresent()
         );
-    }
+    };
 
-    self._checkDateTimeFormats = function() {
+    const isEveryFilledDateFieldValid = () => {
         const firstUse = self.spoolItemForEditing.firstUseKO() || "";
         const lastUse = self.spoolItemForEditing.lastUseKO() || "";
         const purchasedOn = self.spoolItemForEditing.purchasedOnKO() || "";
@@ -370,7 +362,14 @@ function SpoolManagerEditSpoolDialog(props){
         }
 
         return true;
-    }
+    };
+
+    self.isFormValidForSubmit = ko.pureComputed(function () {
+        return (
+            isEveryMandatoryFieldValid() &&
+            isEveryFilledDateFieldValid()
+        );
+    });
 
     self.isDisplayNamePresent = function() {
         const displayName = self.spoolItemForEditing.displayName() || "";
