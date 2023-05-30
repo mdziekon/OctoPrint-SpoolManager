@@ -338,21 +338,12 @@ function SpoolManagerEditSpoolDialog(props){
         return true;
     });
 
-    self._checkMandatoryFields = function(){
-        // "Displayname", "total weight", "color name/code"
-        let namePresent = self.isDisplayNamePresent();
-        if (namePresent == false){
-            return false;
-        }
-        let colorNametPresent = self.isColorNamePresent();
-        if (colorNametPresent == false){
-            return false;
-        }
-        let weightPresent = self.isTotalCombinedWeightPresent();
-        if (weightPresent == false){
-            return false;
-        }
-        return true;
+    self._checkMandatoryFields = function() {
+        return (
+            self.isDisplayNamePresent() &&
+            self.isColorNamePresent() &&
+            self.isTotalCombinedWeightPresent()
+        );
     }
 
     self._checkDateTimeFormats = function(){
@@ -379,19 +370,22 @@ function SpoolManagerEditSpoolDialog(props){
         return true;
     }
 
-    self.isDisplayNamePresent = function(){
-        var displayName = self.spoolItemForEditing.displayName();
-        return (!displayName || displayName.trim().length === 0) == false;
+    self.isDisplayNamePresent = function() {
+        const displayName = self.spoolItemForEditing.displayName() || "";
+
+        return (displayName.trim().length > 0);
     }
 
-    self.isColorNamePresent = function(){
-        var colorName = self.spoolItemForEditing.colorName();
-        return (!colorName || colorName.trim().length === 0) == false;
+    self.isColorNamePresent = function() {
+        const colorName = self.spoolItemForEditing.colorName() || "";
+
+        return (colorName.trim().length > 0);
     }
 
-    self.isTotalCombinedWeightPresent = function(){
-        var totalCombinedWeight = self.spoolItemForEditing.totalCombinedWeight();
-        return (!totalCombinedWeight || (""+totalCombinedWeight).trim().length === 0) == false;
+    self.isTotalCombinedWeightPresent = function() {
+        const totalCombinedWeight = self.spoolItemForEditing.totalCombinedWeight();
+
+        return (String(totalCombinedWeight || "").trim().length > 0);
     }
 
     function _roundTo(x, precision) {
