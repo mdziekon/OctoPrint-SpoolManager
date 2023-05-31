@@ -858,15 +858,8 @@ function SpoolManagerEditSpoolDialog(props){
     }
 
     self.saveSpoolItem = async function() {
-
-        // Input validation
-        var displayName = self.spoolItemForEditing.displayName();
-        if (!displayName || displayName.trim().length === 0){
-            alert("Displayname not entered!");
-            return;
-        }
         // workaround
-        self.spoolItemForEditing.costUnit(self.pluginSettings.currencySymbol())
+        self.spoolItemForEditing.costUnit(self.pluginSettings.currencySymbol());
 
         var noteText = self.noteEditor.getText();
         var noteDeltaFormat = self.noteEditor.getContents();
