@@ -816,33 +816,10 @@ function SpoolManagerEditSpoolDialog(props){
         self._copySpoolItemForEditing(self.spoolItemForEditing);
     }
 
-    self.copySpoolItemFromTemplate = function(spoolItem){
-        // Copy everything
+    self.copySpoolItemFromTemplate = function(spoolItem) {
         self._copySpoolItemForEditing(spoolItem);
-        // reset values that should'nt be copied
+        self._cleanupSpoolItemAfterCopy(spoolItem);
 
-
-        var defaultExcludedFields = ["selectedForTool","version", "databaseId", "isTemplate","firstUseKO", "lastUseKO",
-                                    "remainingWeight","remainingPercentage","usedLength", "usedLengthPercentage","remainingLength", "remainingLengthPercentage",
-                                    "usedWeight", "usedPercentage", "totalCombinedWeight", "remainingCombinedWeight"];
-        var allFieldNames = Object.keys(spoolItem);
-        for (const fieldName of allFieldNames){
-            if (self.pluginSettings.excludedFromTemplateCopy().includes(fieldName) ||
-                defaultExcludedFields.includes(fieldName)){
-                var currentValue = self.spoolItemForEditing[fieldName]();
-                self.spoolItemForEditing[fieldName]("");
-            }
-        }
-        if (self.pluginSettings.excludedFromTemplateCopy().includes("allNotes")) {
-            if (self.noteEditor != null) {
-                self.noteEditor.setText("", 'api');
-            }
-            // self.spoolItemForEditing["noteText"]("");
-            // self.spoolItemForEditing["noteDeltaFormat"]("");
-            // self.spoolItemForEditing["noteHtml"]("");
-        }
-
-        // close dialog
         self.templateSpoolDialog.modal('hide');
     }
 
@@ -855,7 +832,46 @@ function SpoolManagerEditSpoolDialog(props){
         self.spoolItemForEditing.isInActive(false);
         self.spoolItemForEditing.databaseId(null);
         self.spoolItemForEditing.isSpoolVisible(true);
-    }
+    };
+    self._cleanupSpoolItemAfterCopy = function (spoolItem) {
+        const defaultExcludedFields = [
+            "selectedForTool",
+            "version",
+            "databaseId",
+            "isTemplate",
+            "firstUseKO",
+            "lastUseKO",
+            "remainingWeight",
+            "remainingPercentage",
+            "usedLength",
+            "usedLengthPercentage",
+            "remainingLength",
+            "remainingLengthPercentage",
+            "usedWeight",
+            "usedPercentage",
+            "totalCombinedWeight",
+            "remainingCombinedWeight",
+        ];
+        const customExcludedFields = self.pluginSettings.excludedFromTemplateCopy();
+
+        const allFieldNames = Object.keys(spoolItem);
+        for (const fieldName of allFieldNames) {
+            if (
+                defaultExcludedFields.includes(fieldName) ||
+                customExcludedFields.includes(fieldName)
+            ) {
+                self.spoolItemForEditing[fieldName]("");
+            }
+        }
+        if (customExcludedFields.includes("allNotes")) {
+            if (self.noteEditor != null) {
+                self.noteEditor.setText("", 'api');
+            }
+            // self.spoolItemForEditing["noteText"]("");
+            // self.spoolItemForEditing["noteDeltaFormat"]("");
+            // self.spoolItemForEditing["noteHtml"]("");
+        }
+    };
 
     self.saveSpoolItem = async function() {
         // workaround
