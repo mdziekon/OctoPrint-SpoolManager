@@ -7,6 +7,8 @@ const MATERIALS_DENSITY_MAP = SPOOLMANAGER_CONSTANTS.MATERIALS_DENSITY_MAPPING;
 
 const FORMAT_DATETIME_LOCAL = "YYYY-MM-DDTHH:mm";
 const FORMAT_DATE = "YYYY-MM-DD";
+const PARSE_FORMAT_DATETIME = "DD.MM.YYYY HH:mm";
+const PARSE_FORMAT_DATE = "DD.MM.YYYY";
 
 const elementSelector = "#dialog_spool_edit";
 
@@ -229,18 +231,19 @@ function SpoolManagerEditSpoolDialog(props){
         this.firstUse(updateData.firstUse);
         this.lastUse(updateData.lastUse);
         this.purchasedOn(updateData.purchasedOn);
-        if (updateData.firstUse){
-            const convertedDateTime = moment(data.firstUse, "DD.MM.YYYY HH:mm").format(FORMAT_DATETIME_LOCAL);
+
+        if (updateData.firstUse) {
+            const convertedDateTime = moment(data.firstUse, PARSE_FORMAT_DATETIME).format(FORMAT_DATETIME_LOCAL);
 
             this.firstUseKO(convertedDateTime);
         }
-        if (updateData.lastUse){
-            const convertedDateTime = moment(data.lastUse, "DD.MM.YYYY HH:mm").format(FORMAT_DATETIME_LOCAL);
+        if (updateData.lastUse) {
+            const convertedDateTime = moment(data.lastUse, PARSE_FORMAT_DATETIME).format(FORMAT_DATETIME_LOCAL);
 
             this.lastUseKO(convertedDateTime);
         }
-        if (updateData.purchasedOn){
-            const convertedDateTime = moment(data.purchasedOn, "DD.MM.YYYY").format(FORMAT_DATE);
+        if (updateData.purchasedOn) {
+            const convertedDateTime = moment(data.purchasedOn, PARSE_FORMAT_DATE).format(FORMAT_DATE);
 
             this.purchasedOnKO(convertedDateTime);
         }
