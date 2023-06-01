@@ -70,8 +70,6 @@ function SpoolManagerEditSpoolDialog(props){
         this.isActive = ko.observable();
         this.isInActive = ko.observable();
         this.displayName = ko.observable();
-//        this.vendor = ko.observable();
-//        this.material = ko.observable();
         this.density = ko.observable();
         this.diameter = ko.observable();
         this.diameterTolerance = ko.observable();
@@ -96,8 +94,6 @@ function SpoolManagerEditSpoolDialog(props){
         this.usedWeight = ko.observable();
         this.usedPercentage = ko.observable();
         this.code = ko.observable();
-//        this.labels = ko.observable();
-//            this.allLabels = ko.observable();
         this.noteText = ko.observable()
         this.noteDeltaFormat = ko.observable()
         this.noteHtml = ko.observable()
