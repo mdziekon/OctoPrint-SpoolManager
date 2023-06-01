@@ -395,26 +395,21 @@ function SpoolManagerEditSpoolDialog(props){
         return Math.round((x + Number.EPSILON) * increments) / increments;
     }
 
-    this._reColorFilamentIcon = function(newColor){
-        var loopCount = 0;
-        var primaryColor = newColor; //"#FF1D25"
-        var secondaryColor = tinycolor(primaryColor).darken(12).toString();
-        //            console.info(primaryColor);
-        //            console.info(secondaryColor);
-        var svgIcon = $("#svg-filament")
-        svgIcon.children("rect").each(function(loopIndex){
-            if (loopIndex %2 == 0){
-                //Change color of filament
-                $(this).attr("fill",primaryColor);
+    this._updateFilamentIcon = function(newColor) {
+        const primaryColor = newColor;
+        const secondaryColor = tinycolor(primaryColor).darken(12).toString();
 
-            } else {
-                //Change color of filament
-                $(this).attr("fill",secondaryColor);
-            }
-            loopCount++;
+        const $iconElement = document.querySelector("#svg-filament");
+
+        [ ...$iconElement.querySelectorAll("rect") ].forEach(($element, elementIdx) => {
+            const colorFill = elementIdx % 2 === 0 ?
+                primaryColor :
+                secondaryColor
+
+            $element.setAttribute("fill", colorFill);
         });
-        svgIcon.children("path").each(function(loopIndex){
-            $(this).attr("stroke",primaryColor);
+        [ ...$iconElement.querySelectorAll("path") ].forEach(($element) => {
+            $element.setAttribute("stroke", primaryColor);
         });
     };
 
@@ -454,9 +449,9 @@ function SpoolManagerEditSpoolDialog(props){
 
         // initial coloring
         self._createSpoolItemForEditing();
-        self._reColorFilamentIcon(self.spoolItemForEditing.color());
+        self._updateFilamentIcon(self.spoolItemForEditing.color());
         self.spoolItemForEditing.color.subscribe(function(newColor){
-            self._reColorFilamentIcon(newColor);
+            self._updateFilamentIcon(newColor);
             var colorName = tinycolor(newColor).toName();
             if (colorName != false){
                 self.spoolItemForEditing.colorName(colorName);
@@ -765,7 +760,7 @@ function SpoolManagerEditSpoolDialog(props){
             self.allToolIndices.push(toolIndex);
         }
 
-        self._reColorFilamentIcon(self.spoolItemForEditing.color());
+        self._updateFilamentIcon(self.spoolItemForEditing.color());
 
         if (spoolItem == null) {
             self.isExistingSpool(false);
