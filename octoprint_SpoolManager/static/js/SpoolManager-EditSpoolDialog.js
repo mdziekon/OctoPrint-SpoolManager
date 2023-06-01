@@ -230,15 +230,18 @@ function SpoolManagerEditSpoolDialog(props){
         this.lastUse(updateData.lastUse);
         this.purchasedOn(updateData.purchasedOn);
         if (updateData.firstUse){
-            var convertedDateTime = moment(data.firstUse, "DD.MM.YYYY HH:mm").format("YYYY-MM-DDTHH:mm")
+            const convertedDateTime = moment(data.firstUse, "DD.MM.YYYY HH:mm").format(FORMAT_DATETIME_LOCAL);
+
             this.firstUseKO(convertedDateTime);
         }
         if (updateData.lastUse){
-            var convertedDateTime = moment(data.lastUse, "DD.MM.YYYY HH:mm").format("YYYY-MM-DDTHH:mm")
+            const convertedDateTime = moment(data.lastUse, "DD.MM.YYYY HH:mm").format(FORMAT_DATETIME_LOCAL);
+
             this.lastUseKO(convertedDateTime);
         }
         if (updateData.purchasedOn){
-            var convertedDateTime = moment(data.purchasedOn, "DD.MM.YYYY").format("YYYY-MM-DD")
+            const convertedDateTime = moment(data.purchasedOn, "DD.MM.YYYY").format(FORMAT_DATE);
+
             this.purchasedOnKO(convertedDateTime);
         }
 
