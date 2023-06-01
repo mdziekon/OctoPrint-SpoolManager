@@ -8,6 +8,25 @@ function SpoolManagerEditSpoolDialog(props){
     var self = this;
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////// CONSTANTS
+    self.unitValues = {
+        WEIGHT: "weight",
+        LENGTH: "length"
+    };
+    self.stateValues = {
+        INITIAL: "initial",
+        USED: "used",
+        REMAINING: "remaining"
+    };
+    self.scopeValues = {
+        FILAMENT: "filament",
+        SPOOL: "spool",
+        COMBINED: "spool+filament"
+    };
+
+    var FILAMENT = self.scopeValues.FILAMENT;
+    var COMBINED = self.scopeValues.COMBINED;
+    var SPOOL = self.scopeValues.SPOOL;
+
     var DEFAULT_COLOR = "#ff0000";
     var densityMap = {
         PLA:	1.24,
@@ -28,25 +47,7 @@ function SpoolManagerEditSpoolDialog(props){
         PMMA:	1.18,
         FPE:	2.16
     };
-
-    self.unitValues = {
-        WEIGHT: "weight",
-        LENGTH: "length"
-    };
-    self.stateValues = {
-        INITIAL: "initial",
-        USED: "used",
-        REMAINING: "remaining"
-    };
-    self.scopeValues = {
-        FILAMENT: "filament",
-        SPOOL: "spool",
-        COMBINED: "spool+filament"
-    };
-
-    var FILAMENT = self.scopeValues.FILAMENT;
-    var COMBINED = self.scopeValues.COMBINED;
-    var SPOOL = self.scopeValues.SPOOL;
+    const DEFAULT_DRIVEN_SCOPE = COMBINED;
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////// ITEM MODEL
     var SpoolItem = function(spoolData, editable) {
@@ -750,64 +751,51 @@ function SpoolManagerEditSpoolDialog(props){
         self.templateSpools(spoolItemsArray);
     }
 
-    this.showDialog = function(spoolItem, closeDialogHandler){
+    this.showDialog = function(spoolItem, params) {
+        const { onCloseDialog } = params;
+
         self.autoUpdateEnabled = false;
-        self.closeDialogHandler = closeDialogHandler;
-        // get the current tool caunt
+        self.closeDialogHandler = onCloseDialog;
+
         self.allToolIndices([]);
-        var toolCount = self.printerProfilesViewModel.currentProfileData().extruder.count();
-        for (var toolIndex=0; toolIndex<toolCount; toolIndex++){
+
+        const toolCount = self.printerProfilesViewModel.currentProfileData().extruder.count();
+
+        for (let toolIndex = 0; toolIndex < toolCount; toolIndex++) {
             self.allToolIndices.push(toolIndex);
         }
 
-        // initial coloring
         self._reColorFilamentIcon(self.spoolItemForEditing.color());
 
-        if (spoolItem == null){
-            // New Spool
+        if (spoolItem == null) {
             self.isExistingSpool(false);
-            // reset values for a new spool
+
             self.spoolItemForEditing.update({});
-            // self.spoolItemForEditing.isActive(true);
             self.spoolItemForEditing.isInActive(false);
-            // self.spoolItemForEditing.isTemplate(false);
-            // self.spoolItemForEditing.isActive(true);
-            // self.spoolItemForEditing.databaseId(null);
-            // self.spoolItemForEditing.costUnit(self.pluginSettings.currencySymbol());
-            // self.spoolItemForEditing.displayName(null);
-            // self.spoolItemForEditing.totalWeight(0.0);
-            // self.spoolItemForEditing.usedWeight(0.0);
-            // self.spoolItemForEditing.totalLength(0);
-            // self.spoolItemForEditing.usedLength(0);
-            // self.spoolItemForEditing.firstUse(null);
-            // self.spoolItemForEditing.firstUseKO(null);
-            // self.spoolItemForEditing.lastUse(null);
-            // self.spoolItemForEditing.lastUseKO(null);
-            // self.spoolItemForEditing.purchasedOn(null);
-            // self.spoolItemForEditing.purchasedOnKO(null);
-            // self.spoolItemForEditing.remainingCombinedWeight(0);
-            // self.spoolItemForEditing.totalCombinedWeight(0);
         } else {
             self.isExistingSpool(true);
-            // Make a copy of provided spoolItem
-            spoolItemCopy = ko.mapping.toJS(spoolItem);
+
+            const spoolItemCopy = ko.mapping.toJS(spoolItem);
+
             self.spoolItemForEditing.update(spoolItemCopy);
         }
-        self.spoolItemForEditing.drivenScope(COMBINED); // default calculation mode
+        self.spoolItemForEditing.drivenScope(DEFAULT_DRIVEN_SCOPE);
         self.spoolItemForEditing.isSpoolVisible(true);
 
         self.spoolDialog.modal({
-            minHeight: function() { return Math.max($.fn.modal.defaults.maxHeight() - 180, 250); },
+            minHeight: function () {
+                return Math.max($.fn.modal.defaults.maxHeight() - 180, 250);
+            },
             keyboard: false,
             clickClose: true,
             showClose: false,
             backdrop: "static"
-        })
-        .css({
+        }).css({
             width: 'auto',
-            'margin-left': function() { return -($(this).width() /2); }
+            'margin-left': function () {
+                return -($(this).width() / 2);
+            }
         });
-
 
         self.autoUpdateEnabled = true;
     };

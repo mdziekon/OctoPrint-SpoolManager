@@ -786,7 +786,7 @@ $(function() {
         //////////////////////////////////////////////////////////////////////////////////////////////////// TABLE / TAB
 
         self.addNewSpool = function(){
-            self.spoolDialog.showDialog(null, handleSpoolDialogClose);
+            self.spoolDialog.showDialog(null, { onCloseDialog: handleSpoolDialogClose });
         }
 
         self.tableAttributeVisibility = {
@@ -850,7 +850,7 @@ $(function() {
             const currentSpoolDbId = selectedSpoolItem.databaseId();
 
             const showDialog = () => {
-                self.spoolDialog.showDialog(selectedSpoolItem, handleSpoolDialogClose);
+                self.spoolDialog.showDialog(selectedSpoolItem, { onCloseDialog: handleSpoolDialogClose });
             };
 
             if (!currentSpoolDbId) {
@@ -1139,7 +1139,7 @@ $(function() {
             self.spoolDialog.afterBinding();
             self.downloadDatabaseUrl(self.apiClient.getDownloadDatabaseUrl());
 
-// testing            self.spoolDialog.showDialog(null, handleSpoolDialogClose);
+// testing            self.spoolDialog.showDialog(null, { onCloseDialog: handleSpoolDialogClose });
         }
 
         // receive data from server
