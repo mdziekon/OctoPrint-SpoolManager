@@ -29,15 +29,6 @@ function SpoolManagerEditSpoolDialog(props){
     var self = this;
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////// CONSTANTS
-    self.unitValues = {
-        WEIGHT: "weight",
-        LENGTH: "length"
-    };
-    self.stateValues = {
-        INITIAL: "initial",
-        USED: "used",
-        REMAINING: "remaining"
-    };
     self.scopeValues = {
         FILAMENT: FILAMENT,
         SPOOL: SPOOL,
