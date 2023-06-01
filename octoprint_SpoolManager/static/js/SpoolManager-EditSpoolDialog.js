@@ -1,6 +1,8 @@
 const FORMAT_DATETIME_LOCAL = "YYYY-MM-DDTHH:mm";
 const FORMAT_DATE = "YYYY-MM-DD";
 
+const elementSelector = "#dialog_spool_edit";
+
 // Dialog functionality
 function SpoolManagerEditSpoolDialog(props){
     const { managerViewModel } = props;
@@ -123,18 +125,24 @@ function SpoolManagerEditSpoolDialog(props){
         // this.allMaterials = materialViewModel.allOptions;
 
         // Autosuggest for "density"
-        this.material.subscribe(function(newMaterial){
-            if ($("#dialog_spool_edit").is(":visible")){
-                if (self.spoolItemForEditing.isSpoolVisible() == true){
-                    var mat = self.spoolItemForEditing.material();
-                    if (mat){
-                        var density = densityMap[mat.toUpperCase()]
-                        if (density){
-                           self.spoolItemForEditing.density(density);
-                        }
-                    }
-                }
+        this.material.subscribe((newMaterial) => {
+            if (
+                !$(elementSelector).is(":visible") ||
+                !self.spoolItemForEditing.isSpoolVisible()
+            ) {
+                return;
             }
+            if (!newMaterial) {
+                return;
+            }
+
+            const newMaterialDensity = densityMap[newMaterial.toUpperCase()];
+
+            if (!newMaterialDensity) {
+                return;
+            }
+
+            self.spoolItemForEditing.density(newMaterialDensity);
         });
 
         if (editable == true){
