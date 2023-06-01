@@ -1,3 +1,10 @@
+/**
+ * Note: depends on sources concatenation order as defined in __init__.py & performed by Octoprint.
+ * If it ever fails because of architectural change in Octoprint,
+ * consider moving these "imports" to a closure ensured to run after everything loads.
+ */
+const MATERIALS_DENSITY_MAP = SPOOLMANAGER_CONSTANTS.MATERIALS_DENSITY_MAPPING;
+
 const FORMAT_DATETIME_LOCAL = "YYYY-MM-DDTHH:mm";
 const FORMAT_DATE = "YYYY-MM-DD";
 
@@ -21,6 +28,8 @@ const FILAMENT_STATS_CALC_OPTIONS = [
         value: COMBINED,
     },
 ];
+const DEFAULT_DRIVEN_SCOPE = COMBINED;
+const DEFAULT_COLOR = "#ff0000";
 
 // Dialog functionality
 function SpoolManagerEditSpoolDialog(props){
@@ -34,28 +43,6 @@ function SpoolManagerEditSpoolDialog(props){
         SPOOL: SPOOL,
         COMBINED: COMBINED,
     };
-
-    var DEFAULT_COLOR = "#ff0000";
-    var densityMap = {
-        PLA:	1.24,
-        PLA_plus:	1.24,
-        ABS:	1.04,
-        PETG:	1.27,
-        NYLON:	1.52,
-        TPU:	1.21,
-        PC:	    1.3,
-        Wood:	1.28,
-        Carbon:	1.3,
-        PC_ABS:	1.19,
-        HIPS:	1.03,
-        PVA:	1.23,
-        ASA:	1.05,
-        PP:	    0.9,
-        POM:	1.4,
-        PMMA:	1.18,
-        FPE:	2.16
-    };
-    const DEFAULT_DRIVEN_SCOPE = COMBINED;
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////// ITEM MODEL
     var SpoolItem = function(spoolData, editable) {
