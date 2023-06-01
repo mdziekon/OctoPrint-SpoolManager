@@ -3,6 +3,25 @@ const FORMAT_DATE = "YYYY-MM-DD";
 
 const elementSelector = "#dialog_spool_edit";
 
+const FILAMENT = "filament";
+const COMBINED = "spool+filament";
+const SPOOL = "spool";
+
+const FILAMENT_STATS_CALC_OPTIONS = [
+    {
+        text: "Filament Amount",
+        value: FILAMENT,
+    },
+    {
+        text: "Spool Weight",
+        value: SPOOL,
+    },
+    {
+        text: "Combined Weight",
+        value: COMBINED,
+    },
+];
+
 // Dialog functionality
 function SpoolManagerEditSpoolDialog(props){
     const { managerViewModel } = props;
@@ -20,14 +39,10 @@ function SpoolManagerEditSpoolDialog(props){
         REMAINING: "remaining"
     };
     self.scopeValues = {
-        FILAMENT: "filament",
-        SPOOL: "spool",
-        COMBINED: "spool+filament"
+        FILAMENT: FILAMENT,
+        SPOOL: SPOOL,
+        COMBINED: COMBINED,
     };
-
-    var FILAMENT = self.scopeValues.FILAMENT;
-    var COMBINED = self.scopeValues.COMBINED;
-    var SPOOL = self.scopeValues.SPOOL;
 
     var DEFAULT_COLOR = "#ff0000";
     var densityMap = {
@@ -161,20 +176,7 @@ function SpoolManagerEditSpoolDialog(props){
         this.totalCombinedWeight = ko.observable();
         this.remainingCombinedWeight = ko.observable();
         this.drivenScope = ko.observable();
-        this.drivenScopeOptions = ko.observableArray([
-            {
-                text: "Filament Amount",
-                value: FILAMENT,
-            },
-            {
-                text: "Spool Weight",
-                value: SPOOL,
-            },
-            {
-                text: "Combined Weight",
-                value: COMBINED,
-            },
-        ]);
+        this.drivenScopeOptions = FILAMENT_STATS_CALC_OPTIONS;
 
         // Fill Item with data
         this.update(spoolData);
