@@ -167,9 +167,6 @@ function SpoolManagerEditSpoolDialog(props){
     SpoolItem.prototype.update = function (data) {
         var updateData = data || {}
 
-        // TODO weight: renaming
-        self.autoUpdateEnabled = false;
-
         // update latest all catalog
         if (self.catalogs != null){
             // labels
@@ -275,26 +272,10 @@ function SpoolManagerEditSpoolDialog(props){
             // Fallback text
             this.noteHtml(updateData.noteText);
         }
-        // fill editor
-        if (self.noteEditor != null){
-            if (updateData.noteDeltaFormat == null || updateData.noteDeltaFormat.length == 0) {
-                // Fallback is text (if present), not Html
-                if (updateData.noteText != null){
-                    self.noteEditor.setText(updateData.noteText, 'api');
-                } else {
-                    self.noteEditor.setText("", 'api');
-                }
-            }else {
-                    deltaFormat = JSON.parse(updateData.noteDeltaFormat);
-                    self.noteEditor.setContents(deltaFormat, 'api');
-            }
-        }
 
         // Calculate derived fields (these exists only in this view model)
         this.totalCombinedWeight(_getValueOrZero(updateData.totalWeight) + _getValueOrZero(updateData.spoolWeight));
         this.remainingCombinedWeight(_getValueOrZero(updateData.remainingWeight) + _getValueOrZero(updateData.spoolWeight));
-
-        self.autoUpdateEnabled = true;
     };
 
 
@@ -750,14 +731,14 @@ function SpoolManagerEditSpoolDialog(props){
         if (spoolItem == null) {
             self.isExistingSpool(false);
 
-            self.spoolItemForEditing.update({});
+            self._updateActiveSpoolItem({});
             self.spoolItemForEditing.isInActive(false);
         } else {
             self.isExistingSpool(true);
 
             const spoolItemCopy = ko.mapping.toJS(spoolItem);
 
-            self.spoolItemForEditing.update(spoolItemCopy);
+            self._updateActiveSpoolItem(spoolItemCopy);
         }
         self.spoolItemForEditing.drivenScope(DEFAULT_DRIVEN_SCOPE);
         self.spoolItemForEditing.isSpoolVisible(true);
@@ -780,6 +761,35 @@ function SpoolManagerEditSpoolDialog(props){
         self.autoUpdateEnabled = true;
     };
 
+    self._updateActiveSpoolItem = (spoolItem) => {
+        const updateData = spoolItem || {};
+
+        // TODO weight: renaming
+        self.autoUpdateEnabled = false;
+
+        self.spoolItemForEditing.update(updateData);
+
+        if (self.noteEditor) {
+            if (
+                updateData.noteDeltaFormat == null ||
+                updateData.noteDeltaFormat.length == 0
+            ) {
+                // Fallback is text (if present), not Html
+                if (updateData.noteText != null) {
+                    self.noteEditor.setText(updateData.noteText, 'api');
+                } else {
+                    self.noteEditor.setText("", 'api');
+                }
+            } else {
+                const deltaFormat = JSON.parse(updateData.noteDeltaFormat);
+
+                self.noteEditor.setContents(deltaFormat, 'api');
+            }
+        }
+
+        self.autoUpdateEnabled = true;
+    };
+
     self.copySpoolItem = function(){
         self._copySpoolItemForEditing(self.spoolItemForEditing);
     }
@@ -794,7 +804,7 @@ function SpoolManagerEditSpoolDialog(props){
     self._copySpoolItemForEditing = function(spoolItem){
         self.isExistingSpool(false);
         let spoolItemCopy = ko.mapping.toJS(spoolItem);
-        self.spoolItemForEditing.update(spoolItemCopy);
+        self._updateActiveSpoolItem(spoolItemCopy);
         self.spoolItemForEditing.isTemplate(false);
         // self.spoolItemForEditing.isActive(true);  is set by 'isInActive'
         self.spoolItemForEditing.isInActive(false);
