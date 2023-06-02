@@ -855,6 +855,7 @@ class SpoolmanagerPlugin(
 				"js/ResetSettingsUtilV3.js",
 				"js/ComponentFactory.js",
 				"js/TableItemHelper.js",
+				"js/SpoolManager-SpoolItem.js",
 				"js/SpoolManager.js",
 				"js/SpoolManager-APIClient.js",
 				"js/SpoolManager-FilterSorter.js",
