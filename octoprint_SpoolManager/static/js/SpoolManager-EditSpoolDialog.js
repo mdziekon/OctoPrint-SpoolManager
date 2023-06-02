@@ -136,21 +136,23 @@ function SpoolManagerEditSpoolDialog(props){
             this.density(newMaterialDensity);
         });
 
-        if (editable == true){
-            var colorViewModel = self.componentFactory.createColorPicker("filament-color-picker");
-            this.color = colorViewModel.selectedColor;
-            this.color(DEFAULT_COLOR);  // needed
+        if (editable == true) {
+            const colorViewModel = self.componentFactory.createColorPicker("filament-color-picker");
+            const firstUseViewModel = self.componentFactory.createDateTimePicker("firstUse-date-picker");
+            const lastUseViewModel = self.componentFactory.createDateTimePicker("lastUse-date-picker");
+            const purchasedOnViewModel = self.componentFactory.createDateTimePicker("purchasedOn-date-picker", false);
 
-            var firstUseViewModel = self.componentFactory.createDateTimePicker("firstUse-date-picker");
-            var lastUseViewModel = self.componentFactory.createDateTimePicker("lastUse-date-picker");
-            var purchasedOnViewModel = self.componentFactory.createDateTimePicker("purchasedOn-date-picker", false);
+            this.color = colorViewModel.selectedColor;
+            this.color(DEFAULT_COLOR);
             this.firstUse = firstUseViewModel.currentDateTime;
             this.lastUse = lastUseViewModel.currentDateTime;
             this.purchasedOn = purchasedOnViewModel.currentDateTime;
         }
-        self.labelsViewModel = self.componentFactory.createLabels("spool-labels-select", $('#spool-form'));
-        this.labels   = self.labelsViewModel.selectedOptions;
-        this.allLabels = self.labelsViewModel.allOptions;
+
+        const labelsViewModel = self.componentFactory.createLabels("spool-labels-select", $('#spool-form'));
+
+        this.labels = labelsViewModel.selectedOptions;
+        this.allLabels = labelsViewModel.allOptions;
 
         // Non-persistent fields (these exist only in this view model for weight-calculation)
         this.totalCombinedWeight = ko.observable();
@@ -304,8 +306,6 @@ function SpoolManagerEditSpoolDialog(props){
     self.spoolItemForEditing = null;
     self.templateSpools = ko.observableArray([]);
     self.noteEditor = null;
-    self.labelsViewModel = null;
-    self.materialViewModel = null;
 
     self.catalogs = null;
     self.allMaterials = ko.observableArray([]);
