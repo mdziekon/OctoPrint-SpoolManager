@@ -162,31 +162,7 @@ function ComponentFactory(pluginId) {
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////// SELECT WITH FILTER
-    this.createSelectWithFilter = function(elementId, dropDownParent){
-
-        var elementSelector = "#" + elementId;
-        // Build Widget
-        var select2 = $(elementSelector).select2({
-          dropdownParent: dropDownParent,
-          placeholder: "Choose...",
-          allowClear: true,
-          tags: true
-        });
-
-        // Widget Model
-        var componentViewModel = {
-            allOptions: ko.observableArray(),
-            selectedOption: ko.observable(),
-            select2Element: select2
-        }
-
-        // sync: observable -> jquery
-        componentViewModel.selectedOption.subscribe(function(newSelection){
-            select2.val(newSelection);
-            select2.trigger('change');
-        });
-        return componentViewModel;
-    }
+    this.createSelectWithFilter = ComponentFactory.createSelectWithFilter;
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////// COLOR - PICKER
     this.createColorPicker = function(elementId){
@@ -337,3 +313,26 @@ function ComponentFactory(pluginId) {
     };
 
 }
+
+ComponentFactory.createSelectWithFilter = (elementId, dropDownParent) => {
+    const $select2 = $(`#${elementId}`).select2({
+        dropdownParent: dropDownParent,
+        placeholder: "Choose...",
+        allowClear: true,
+        tags: true
+    });
+
+    const componentViewModel = {
+        allOptions: ko.observableArray(),
+        selectedOption: ko.observable(),
+        select2Element: $select2
+    }
+
+    // sync: observable -> jquery
+    componentViewModel.selectedOption.subscribe(function(newSelection) {
+        $select2.val(newSelection);
+        $select2.trigger('change');
+    });
+
+    return componentViewModel;
+};
