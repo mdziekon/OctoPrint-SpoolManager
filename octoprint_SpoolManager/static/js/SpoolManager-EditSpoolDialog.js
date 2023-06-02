@@ -31,7 +31,6 @@ function SpoolManagerEditSpoolDialog(props) {
     };
 
     ///////////////////////////////////////////////////////////////////////////////////////////////// Instance Variables
-    self.componentFactory = new ComponentFactory();
     self.spoolDialog = null;
     self.templateSpoolDialog = null;
     self.closeDialogHandler = null;
@@ -48,7 +47,6 @@ function SpoolManagerEditSpoolDialog(props) {
 
     // Knockout stuff
     this.isExistingSpool = ko.observable(false);
-    this.spoolSelectedByQRCode = ko.observable(false);
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////// HELPER
     const isEveryMandatoryFieldValid = () => {
