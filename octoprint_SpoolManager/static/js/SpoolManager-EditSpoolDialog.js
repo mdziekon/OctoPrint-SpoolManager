@@ -111,7 +111,7 @@ function SpoolManagerEditSpoolDialog(props) {
         return (String(totalCombinedWeight || "").trim().length > 0);
     };
 
-    this._updateFilamentIcon = function(newColor) {
+    self._updateFilamentIcon = function(newColor) {
         const primaryColor = newColor;
         const secondaryColor = tinycolor(primaryColor).darken(12).toString();
 
@@ -130,7 +130,7 @@ function SpoolManagerEditSpoolDialog(props) {
     };
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////// PUBLIC
-    this.initBinding = function(apiClient, pluginSettings, printerProfilesViewModel){
+    self.initBinding = function(apiClient, pluginSettings, printerProfilesViewModel){
 
         self.autoUpdateEnabled = false;
         self.apiClient = apiClient;
@@ -411,9 +411,9 @@ function SpoolManagerEditSpoolDialog(props) {
         // ----------------- end: weight stuff
     };
 
-    this.afterBinding = function () {};
+    self.afterBinding = function () {};
 
-    this._createSpoolItemForEditing = function() {
+    self._createSpoolItemForEditing = function() {
         self.spoolItemForEditing = new SpoolItem(null, true, { catalogs: self.catalogs });
 
         self.spoolItemForEditing.isInActive.subscribe(function(newValue){
@@ -423,12 +423,12 @@ function SpoolManagerEditSpoolDialog(props) {
         return self.spoolItemForEditing;
     };
 
-    this.createSpoolItemForTable = function(spoolData) {
+    self.createSpoolItemForTable = function(spoolData) {
         var newSpoolItem = new SpoolItem(spoolData, false, { catalogs: self.catalogs });
         return newSpoolItem;
     };
 
-    this.updateCatalogs = function(allCatalogs) {
+    self.updateCatalogs = function(allCatalogs) {
         self.catalogs = allCatalogs;
         if (self.catalogs != null){
             self.allMaterials(self.catalogs["materials"]);
@@ -441,7 +441,7 @@ function SpoolManagerEditSpoolDialog(props) {
         }
     };
 
-    this.updateTemplateSpools = function(templateSpoolsData) {
+    self.updateTemplateSpools = function(templateSpoolsData) {
         var spoolItemsArray = [];
         if (templateSpoolsData != null && templateSpoolsData.length !=0){
             spoolItemsArray = ko.utils.arrayMap(templateSpoolsData, function (spoolData) {
@@ -452,7 +452,7 @@ function SpoolManagerEditSpoolDialog(props) {
         self.templateSpools(spoolItemsArray);
     };
 
-    this.showDialog = function(spoolItem, params) {
+    self.showDialog = function(spoolItem, params) {
         const { onCloseDialog } = params;
 
         self.autoUpdateEnabled = false;
