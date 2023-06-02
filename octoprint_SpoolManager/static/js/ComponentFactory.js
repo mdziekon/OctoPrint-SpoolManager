@@ -161,70 +161,8 @@ function ComponentFactory(pluginId) {
         return componentViewModel;
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////// SELECT WITH FILTER
     this.createSelectWithFilter = ComponentFactory.createSelectWithFilter;
-
-    ///////////////////////////////////////////////////////////////////////////////////////////////////// COLOR - PICKER
-    this.createColorPicker = function(elementId){
-
-        // Widget Model
-        var componentViewModel = {
-            selectedColor: ko.observable(),
-        }
-
-        var elementSelector = "#" + elementId;
-        var pickColor = $(elementSelector).pickAColor({
-            showSpectrum          : false,
-            showSavedColors       : false,
-            saveColorsPerElement  : false,
-            fadeMenuToggle        : true,
-            showAdvanced          : true,
-            showBasicColors       : true,
-            showHexInput          : true,
-            allowBlank            : false,
-            basicColors           : {
-                  white     : 'ffffff',
-                  black     : '000000',
-                  red       : 'ff0000',
-                  green     : '008000',
-                  blue      : '0000ff',
-                  yellow    : 'ffff00',
-                  orange    : 'ffa500',
-                  purple    : '800080',
-                  gray      : '808080',
-                  darkgray  : 'A9A9A9',
-                  lightgray : 'D3D3D3',
-                  violet    : 'EE82EE',
-                  pink      : 'FFC0CB',
-                  brown     : 'A52A2A',
-                  burlyWood : 'DEB887'
-                }
-        });
-
-        // sync: jquery -> observable
-        pickColor.on("change", function () {
-            var newColor = ""+$(this).val();
-            if (newColor.startsWith("#") == false){
-                newColor = "#" + $(this).val();
-            }
-            componentViewModel.selectedColor(newColor);
-        });
-
-        // sync: observable -> jquery SELCETED_OPTIONS
-        componentViewModel.selectedColor.subscribe(function(newColor){
-            // check if new color already selected
-            currentColor = "#" + pickColor.val();
-            if (currentColor != newColor){
-                newColorCode = newColor.substr(1);
-                pickColor.setColor(newColorCode);
-            }
-
-        });
-
-
-        return componentViewModel;
-    };
-
+    this.createColorPicker = ComponentFactory.createColorPicker;
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////// NOTE EDITOR
     this.createNoteEditor = function(elementId){
@@ -332,6 +270,65 @@ ComponentFactory.createSelectWithFilter = (elementId, dropDownParent) => {
     componentViewModel.selectedOption.subscribe(function(newSelection) {
         $select2.val(newSelection);
         $select2.trigger('change');
+    });
+
+    return componentViewModel;
+};
+
+ComponentFactory.createColorPicker = (elementId) => {
+    const componentViewModel = {
+        selectedColor: ko.observable(),
+    };
+
+    const $pickColor = $(`#${elementId}`).pickAColor({
+        showSpectrum          : false,
+        showSavedColors       : false,
+        saveColorsPerElement  : false,
+        fadeMenuToggle        : true,
+        showAdvanced          : true,
+        showBasicColors       : true,
+        showHexInput          : true,
+        allowBlank            : false,
+        basicColors           : {
+            white     : 'ffffff',
+            black     : '000000',
+            red       : 'ff0000',
+            green     : '008000',
+            blue      : '0000ff',
+            yellow    : 'ffff00',
+            orange    : 'ffa500',
+            purple    : '800080',
+            gray      : '808080',
+            darkgray  : 'A9A9A9',
+            lightgray : 'D3D3D3',
+            violet    : 'EE82EE',
+            pink      : 'FFC0CB',
+            brown     : 'A52A2A',
+            burlyWood : 'DEB887'
+        },
+    });
+
+    // sync: jquery -> observable
+    $pickColor.on("change", function () {
+        let newColor = String($(this).val());
+
+        if (newColor.startsWith("#") == false) {
+            newColor = `#${newColor}`;
+        }
+
+        componentViewModel.selectedColor(newColor);
+    });
+
+    // sync: observable -> jquery SELCETED_OPTIONS
+    componentViewModel.selectedColor.subscribe(function(newColor) {
+        const currentColor = "#" + $pickColor.val();
+
+        if (currentColor == newColor) {
+            return;
+        }
+
+        newColorCode = newColor.substr(1);
+        $pickColor.setColor(newColorCode);
     });
 
     return componentViewModel;
