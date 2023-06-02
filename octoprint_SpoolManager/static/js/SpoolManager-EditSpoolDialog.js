@@ -229,22 +229,7 @@ function SpoolManagerEditSpoolDialog(props) {
 
         self.spoolDialog = $("#dialog_spool_edit");
         self.templateSpoolDialog = $("#dialog_template_spool_selection");
-
-        self.noteEditor = new Quill('#spool-note-editor', {
-            modules: {
-                toolbar: [
-                    ['bold', 'italic', 'underline'],
-                    [{ 'color': [] }, { 'background': [] }],
-                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                    ['link']
-                ]
-            },
-            theme: 'snow'
-        });
-
-        Quill.prototype.getHtml = function() {
-            return this.container.querySelector('.ql-editor').innerHTML;
-        };
+        self.noteEditor = ComponentFactory.createNoteEditor('spool-note-editor');
 
         // initial coloring
         self._createSpoolItemForEditing();

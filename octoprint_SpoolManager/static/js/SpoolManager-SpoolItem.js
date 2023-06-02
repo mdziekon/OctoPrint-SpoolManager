@@ -96,6 +96,7 @@ let SpoolItem;
         this.costUnit = ko.observable();
 
         if (isEditable) {
+            // TODO: This should be done in EditSpoolDialog
             const vendorViewModel = ComponentFactory.createSelectWithFilter("spool-vendor-select", $('#spool-form'));
             const materialViewModel = ComponentFactory.createSelectWithFilter("spool-material-select", $('#spool-form'));
             const colorViewModel = ComponentFactory.createColorPicker("filament-color-picker");

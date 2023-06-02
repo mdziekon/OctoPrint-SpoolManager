@@ -1,6 +1,5 @@
 
 function ComponentFactory(pluginId) {
-
     this.pluginId = pluginId
     this.COMPONENT_PREFIX = "component_";
 
@@ -8,94 +7,8 @@ function ComponentFactory(pluginId) {
     this.createLabels = ComponentFactory.createLabels;
     this.createSelectWithFilter = ComponentFactory.createSelectWithFilter;
     this.createColorPicker = ComponentFactory.createColorPicker;
-
-    //////////////////////////////////////////////////////////////////////////////////////////////////////// NOTE EDITOR
-    this.createNoteEditor = function(elementId){
-
-        // Widget Model
-//        var componentViewModel = {
-//            noteText: ko.observable(),
-//            noteDeltaFormat: ko.observable(),
-//            noteHtml: ko.observable(),
-//        }
-
-        var elementSelector = "#" + elementId;
-        var noteEditor = new Quill(elementSelector, {
-            modules: {
-                toolbar: [
-                    ['bold', 'italic', 'underline'],
-                    [{ 'color': [] }, { 'background': [] }],
-                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                    ['link']
-                ]
-            },
-            theme: 'snow'
-        });
-        Quill.prototype.getHtml = function() {
-            return this.container.querySelector('.ql-editor').innerHTML;
-        };
-
-        var NoteEditorController = function(providedNoteEditor){
-            var noteEditor = providedNoteEditor;
-
-            this.getText = function(){
-                return noteEditor.getText();
-            };
-
-            this.getHtml = function(){
-                return noteEditor.getHtml();
-            };
-
-            this.getDeltaFormat = function(){
-                return noteEditor.getContents();
-            };
-
-            this.setDeltaFormat = function(newDeltaFormat){
-                noteEditor.setContents(newDeltaFormat, 'api');
-            };
-        };
-        return new NoteEditorController(noteEditor);
-
-//        // write to editor
-//        deltaFormat = JSON.parse(printJobItemForEdit.noteDeltaFormat());
-//        self.noteEditor.setContents(deltaFormat, 'api');
-//
-//        // write to item
-//        var noteText = self.noteEditor.getText();
-//        var noteDeltaFormat = self.noteEditor.getContents();
-//        var noteHtml = self.noteEditor.getHtml();
-//        self.printJobItemForEdit.noteText(noteText);
-//        self.printJobItemForEdit.noteDeltaFormat(noteDeltaFormat);
-//        self.printJobItemForEdit.noteHtml(noteHtml);
-
-//        // sync: jquery -> observable
-//        noteEditor.on('text-change', function(delta, oldDelta, source) {
-////            debugger
-//            newDeltaAsString = JSON.stringify(delta);
-//            currentDeltaAsString = JSON.stringify(componentViewModel.noteDeltaFormat());
-//            if (newDeltaAsString != currentDeltaAsString){
-//                componentViewModel.noteText(noteEditor.getText());
-//                componentViewModel.noteDeltaFormat(delta);
-//                componentViewModel.noteHtml(noteEditor.getHtml());
-//            }
-//        });
-//
-//        // sync: observable -> jquery SELCETED_OPTIONS
-//        componentViewModel.noteDeltaFormat.subscribe(function(newDelta){
-////            debugger
-//            // check if new text already assigned
-//            newDeltaAsString = JSON.stringify(newDelta);
-//            currentDeltaAsString = JSON.stringify(noteEditor.getContents());
-//            if (newDeltaAsString != currentDeltaAsString){
-//                noteEditor.setContents(newDelta, 'api');
-//            }
-//        });
-//
-//
-//        return componentViewModel;
-    };
-
-}
+    this.createNoteEditor = ComponentFactory.createNoteEditor;
+};
 
 ComponentFactory.createSelectWithFilter = (elementId, dropDownParent) => {
     const $select2 = $(`#${elementId}`).select2({
@@ -252,4 +165,23 @@ ComponentFactory.createLabels = (elementId, dropDownParent) => {
     });
 
     return componentViewModel;
+};
+
+ComponentFactory.createNoteEditor = (elementId) => {
+    const $noteEditor = new Quill(`#${elementId}`, {
+        modules: {
+            toolbar: [
+                ['bold', 'italic', 'underline'],
+                [{ 'color': [] }, { 'background': [] }],
+                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                ['link']
+            ]
+        },
+        theme: 'snow'
+    });
+    Quill.prototype.getHtml = function() {
+        return this.container.querySelector('.ql-editor').innerHTML;
+    };
+
+    return $noteEditor;
 };
