@@ -91,21 +91,38 @@ let SpoolItem;
         this.lastUseKO = ko.observable();
         this.purchasedOn = ko.observable();
         this.purchasedOnKO = ko.observable();
-
-
         this.purchasedFrom = ko.observable();
         this.cost = ko.observable();
         this.costUnit = ko.observable();
 
-        // Assign default values for editing
-        // overwrite and/or add attributes
-        const vendorViewModel = ComponentFactory.createSelectWithFilter("spool-vendor-select", $('#spool-form'));
-        const materialViewModel = ComponentFactory.createSelectWithFilter("spool-material-select", $('#spool-form'));
+        if (isEditable) {
+            const vendorViewModel = ComponentFactory.createSelectWithFilter("spool-vendor-select", $('#spool-form'));
+            const materialViewModel = ComponentFactory.createSelectWithFilter("spool-material-select", $('#spool-form'));
+            const colorViewModel = ComponentFactory.createColorPicker("filament-color-picker");
+            const firstUseViewModel = ComponentFactory.createDateTimePicker("firstUse-date-picker");
+            const lastUseViewModel = ComponentFactory.createDateTimePicker("lastUse-date-picker");
+            const purchasedOnViewModel = ComponentFactory.createDateTimePicker("purchasedOn-date-picker", false);
+            const labelsViewModel = ComponentFactory.createLabels("spool-labels-select", $('#spool-form'));
 
-        this.vendor = vendorViewModel.selectedOption;
-        this.allVendors = vendorViewModel.allOptions;
-        this.material = materialViewModel.selectedOption;
-        // this.allMaterials = materialViewModel.allOptions;
+            this.vendor = vendorViewModel.selectedOption;
+            this.allVendors = vendorViewModel.allOptions;
+            this.material = materialViewModel.selectedOption;
+            // this.allMaterials = materialViewModel.allOptions;
+            this.labels = labelsViewModel.selectedOptions;
+            this.allLabels = labelsViewModel.allOptions;
+
+            this.color = colorViewModel.selectedColor;
+            this.color(DEFAULT_COLOR);
+            this.firstUse = firstUseViewModel.currentDateTime;
+            this.lastUse = lastUseViewModel.currentDateTime;
+            this.purchasedOn = purchasedOnViewModel.currentDateTime;
+        } else {
+            this.vendor = ko.observable();
+            this.allVendors = ko.observableArray();
+            this.material = ko.observable();
+            this.labels = ko.observableArray();
+            this.allLabels = ko.observableArray();
+        }
 
         // Autosuggest for "density"
         this.material.subscribe((newMaterial) => {
@@ -127,24 +144,6 @@ let SpoolItem;
 
             this.density(newMaterialDensity);
         });
-
-        if (isEditable) {
-            const colorViewModel = ComponentFactory.createColorPicker("filament-color-picker");
-            const firstUseViewModel = ComponentFactory.createDateTimePicker("firstUse-date-picker");
-            const lastUseViewModel = ComponentFactory.createDateTimePicker("lastUse-date-picker");
-            const purchasedOnViewModel = ComponentFactory.createDateTimePicker("purchasedOn-date-picker", false);
-
-            this.color = colorViewModel.selectedColor;
-            this.color(DEFAULT_COLOR);
-            this.firstUse = firstUseViewModel.currentDateTime;
-            this.lastUse = lastUseViewModel.currentDateTime;
-            this.purchasedOn = purchasedOnViewModel.currentDateTime;
-        }
-
-        const labelsViewModel = ComponentFactory.createLabels("spool-labels-select", $('#spool-form'));
-
-        this.labels = labelsViewModel.selectedOptions;
-        this.allLabels = labelsViewModel.allOptions;
 
         // Non-persistent fields (these exist only in this view model for weight-calculation)
         this.totalCombinedWeight = ko.observable();
