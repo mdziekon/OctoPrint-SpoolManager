@@ -127,7 +127,7 @@ function SpoolManagerEditSpoolDialog(props){
                 return;
             }
 
-            const newMaterialDensity = densityMap[newMaterial.toUpperCase()];
+            const newMaterialDensity = MATERIALS_DENSITY_MAP[newMaterial.toUpperCase()];
 
             if (!newMaterialDensity) {
                 return;
