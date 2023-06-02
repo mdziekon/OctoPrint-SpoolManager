@@ -119,7 +119,7 @@ function SpoolManagerEditSpoolDialog(props){
         this.material.subscribe((newMaterial) => {
             if (
                 !$(elementSelector).is(":visible") ||
-                !self.spoolItemForEditing.isSpoolVisible()
+                !this.isSpoolVisible()
             ) {
                 return;
             }
@@ -133,7 +133,7 @@ function SpoolManagerEditSpoolDialog(props){
                 return;
             }
 
-            self.spoolItemForEditing.density(newMaterialDensity);
+            this.density(newMaterialDensity);
         });
 
         if (editable == true){
