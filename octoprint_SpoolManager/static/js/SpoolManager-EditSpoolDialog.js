@@ -8,12 +8,9 @@ const FORMAT_DATETIME_LOCAL = SPOOLMANAGER_CONSTANTS.DATES.DISPLAY_FORMATS.DATET
 const FORMAT_DATE = SPOOLMANAGER_CONSTANTS.DATES.DISPLAY_FORMATS.DATE;
 const PARSE_FORMAT_DATETIME = SPOOLMANAGER_CONSTANTS.DATES.PARSE_FORMATS.DATETIME;
 const PARSE_FORMAT_DATE = SPOOLMANAGER_CONSTANTS.DATES.PARSE_FORMATS.DATE;
-
-const elementSelector = "#dialog_spool_edit";
-
-const FILAMENT = "filament";
-const COMBINED = "spool+filament";
-const SPOOL = "spool";
+const FILAMENT = SPOOLMANAGER_CONSTANTS.FILAMENT_STATS_CALC_MODES.FILAMENT;
+const COMBINED = SPOOLMANAGER_CONSTANTS.FILAMENT_STATS_CALC_MODES.COMBINED;
+const SPOOL = SPOOLMANAGER_CONSTANTS.FILAMENT_STATS_CALC_MODES.SPOOL;
 
 const DEFAULT_DRIVEN_SCOPE = COMBINED;
 
@@ -227,7 +224,7 @@ function SpoolManagerEditSpoolDialog(props) {
         self.pluginSettings = pluginSettings;
         self.printerProfilesViewModel = printerProfilesViewModel;
 
-        self.spoolDialog = $("#dialog_spool_edit");
+        self.spoolDialog = $(SPOOLMANAGER_CONSTANTS.DOM_SELECTORS.SPOOL_DIALOG);
         self.templateSpoolDialog = $("#dialog_template_spool_selection");
         self.noteEditor = ComponentFactory.createNoteEditor('spool-note-editor');
 

@@ -12,6 +12,7 @@ let SpoolItem;
     const FORMAT_DATE = SPOOLMANAGER_CONSTANTS.DATES.DISPLAY_FORMATS.DATE;
     const PARSE_FORMAT_DATETIME = SPOOLMANAGER_CONSTANTS.DATES.PARSE_FORMATS.DATETIME;
     const PARSE_FORMAT_DATE = SPOOLMANAGER_CONSTANTS.DATES.PARSE_FORMATS.DATE;
+    const FILAMENT_STATS_CALC_MODES = SPOOLMANAGER_CONSTANTS.FILAMENT_STATS_CALC_MODES;
 
     const DEFAULT_COLOR = "#ff0000";
 
@@ -20,19 +21,18 @@ let SpoolItem;
     }
 
     SpoolItem = function(spoolData, params) {
-        // TODO: Get rid of circular dependency
         const FILAMENT_STATS_CALC_OPTIONS = [
             {
                 text: "Filament Amount",
-                value: FILAMENT,
+                value: FILAMENT_STATS_CALC_MODES.FILAMENT,
             },
             {
                 text: "Spool Weight",
-                value: SPOOL,
+                value: FILAMENT_STATS_CALC_MODES.SPOOL,
             },
             {
                 text: "Combined Weight",
-                value: COMBINED,
+                value: FILAMENT_STATS_CALC_MODES.COMBINED,
             },
         ];
 
@@ -128,7 +128,7 @@ let SpoolItem;
         // Autosuggest for "density"
         this.material.subscribe((newMaterial) => {
             if (
-                !$(elementSelector).is(":visible") ||
+                !$(SPOOLMANAGER_CONSTANTS.DOM_SELECTORS.SPOOL_DIALOG).is(":visible") ||
                 !this.isSpoolVisible()
             ) {
                 return;

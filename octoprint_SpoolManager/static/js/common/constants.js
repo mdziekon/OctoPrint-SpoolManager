@@ -31,4 +31,12 @@ SPOOLMANAGER_CONSTANTS = {
             DATE: "DD.MM.YYYY",
         },
     },
+    FILAMENT_STATS_CALC_MODES: {
+        FILAMENT: "filament",
+        COMBINED: "spool+filament",
+        SPOOL: "spool",
+    },
+    DOM_SELECTORS: {
+        SPOOL_DIALOG: "#dialog_spool_edit",
+    },
 };
