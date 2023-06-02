@@ -848,7 +848,7 @@ class SpoolmanagerPlugin(
 				"js/select2.min.js",
 				"js/jquery.datetimepicker.full.min.js",
 				"js/tinycolor.js",
-				"js/pick-a-color.js",
+				"js/pick-a-color.min.js",
 				"js/common/constants.js",
 				"js/common/utils.js",
 				"js/ResetSettingsUtilV3.js",
