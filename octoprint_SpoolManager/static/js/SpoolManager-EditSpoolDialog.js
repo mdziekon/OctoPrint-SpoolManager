@@ -380,11 +380,6 @@ function SpoolManagerEditSpoolDialog(props){
         return (String(totalCombinedWeight || "").trim().length > 0);
     }
 
-    function _roundTo(x, precision) {
-        var increments = Math.pow(10, precision);
-        return Math.round((x + Number.EPSILON) * increments) / increments;
-    }
-
     this._updateFilamentIcon = function(newColor) {
         const primaryColor = newColor;
         const secondaryColor = tinycolor(primaryColor).darken(12).toString();
@@ -626,7 +621,7 @@ function SpoolManagerEditSpoolDialog(props){
                 remainPercentageKo(NaN);
                 return;
             }
-            var usedPercentage = _roundTo(
+            var usedPercentage = roundWithPrecision(
                 100 * used / total,
                 0
             );
@@ -643,7 +638,7 @@ function SpoolManagerEditSpoolDialog(props){
                 return parseFloat(x()) || 0;
             }
 
-            targetKo(_roundTo(
+            targetKo(roundWithPrecision(
                 calcFn.apply(null, calcFnArguments.map(getValueOrZero)),
                 1
             ));
@@ -661,13 +656,13 @@ function SpoolManagerEditSpoolDialog(props){
         self.convertToLength = function (weight, density, diameter) {
             var volume = weight / (density *  Math.pow(10, -3)); // [mm^3] = [g] / ( [g/cm^3] * 10^-3 )
             var area = (Math.PI / 4) * Math.pow(diameter, 2); // [mm^2] = pi/4 * [mm]^2
-            return _roundTo(volume / area, 0); // [mm] = [mm^3] / [mm^2}
+            return roundWithPrecision(volume / area, 0); // [mm] = [mm^3] / [mm^2}
         };
 
         self.convertToWeight = function (length, density, diameter) {
             var area = (Math.PI / 4) * Math.pow(diameter, 2); // [mm^2] = pi/4 * [mm]^2
             var volume = area * length; // [mm^3] = [mm^2] * [mm]
-            return _roundTo(volume * density * Math.pow(10, -3), 1); // [g] = [mm^3] * [g/cm^3] * 10^3
+            return roundWithPrecision(volume * density * Math.pow(10, -3), 1); // [g] = [mm^3] * [g/cm^3] * 10^3
         };
 
         // lock mechanism to prevent infinite update loops
