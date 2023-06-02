@@ -19,7 +19,7 @@ let SpoolItem;
         return x ? parseFloat(x) : 0;
     }
 
-    SpoolItem = function(spoolData, editable, params) {
+    SpoolItem = function(spoolData, params) {
         // TODO: Get rid of circular dependency
         const FILAMENT_STATS_CALC_OPTIONS = [
             {
@@ -36,7 +36,10 @@ let SpoolItem;
             },
         ];
 
-        const { catalogs } = params ?? {};
+        const {
+            isEditable,
+            catalogs
+        } = params ?? {};
         // Init Item
 
         // if we use the Item for Editing we need to initialise the widget-model as well , e.g. Option-Values, Suggestion-List
@@ -125,7 +128,7 @@ let SpoolItem;
             this.density(newMaterialDensity);
         });
 
-        if (editable == true) {
+        if (isEditable) {
             const colorViewModel = ComponentFactory.createColorPicker("filament-color-picker");
             const firstUseViewModel = ComponentFactory.createDateTimePicker("firstUse-date-picker");
             const lastUseViewModel = ComponentFactory.createDateTimePicker("lastUse-date-picker");
