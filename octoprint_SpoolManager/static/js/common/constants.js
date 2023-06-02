@@ -21,4 +21,14 @@ SPOOLMANAGER_CONSTANTS = {
         PMMA:       1.18,
         FPE:        2.16
     },
+    DATES: {
+        DISPLAY_FORMATS: {
+            DATETIME_LOCAL: "YYYY-MM-DDTHH:mm",
+            DATE: "YYYY-MM-DD",
+        },
+        PARSE_FORMATS: {
+            DATETIME: "DD.MM.YYYY HH:mm",
+            DATE: "DD.MM.YYYY",
+        },
+    },
 };
