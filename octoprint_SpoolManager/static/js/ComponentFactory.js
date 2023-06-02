@@ -29,47 +29,7 @@ function ComponentFactory(pluginId) {
     }
 
     this.createDateTimePicker = ComponentFactory.createDateTimePicker;
-
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////// LABELS
-    this.createLabels = function(elementId, dropDownParent){
-
-        var elementSelector = "#" + elementId ;
-        // Build Widget
-        var labels = $(elementSelector).select2({
-          dropdownParent: dropDownParent,
-          multiple: true,
-          placeholder: "Add a Label...",
-//          allowClear: true,
-          width: '400px',
-          tags: true,
-          dropdownAutoWidth: true
-//          maximumSelectionLength: 2
-        });
-
-
-        // Widget Model
-        var componentViewModel = {
-            allOptions: ko.observableArray(),
-            selectedOptions: ko.observableArray(),
-//            labelsWidget: labels
-        }
-
-        // sync: observable -> jquery
-        var fired = [false];
-        componentViewModel.selectedOptions.subscribe(function(newSelections){
-            if (fired[0] == false){
-                fired[0] = true;
-                labels.val(newSelections);
-                labels.trigger('change');
-            } else {
-                fired[0] = false;
-            }
-        });
-
-
-        return componentViewModel;
-    }
-
+    this.createLabels = ComponentFactory.createLabels;
     this.createSelectWithFilter = ComponentFactory.createSelectWithFilter;
     this.createColorPicker = ComponentFactory.createColorPicker;
 
@@ -280,6 +240,39 @@ ComponentFactory.createDateTimePicker = (elementId, showTimePicker) => {
         if (componentViewModel.isEnabled() == true) {
             $(elementSelector).datetimepicker('show');
         }
+    });
+
+    return componentViewModel;
+};
+
+ComponentFactory.createLabels = (elementId, dropDownParent) => {
+    const $labels = $(`#${elementId}`).select2({
+        dropdownParent: dropDownParent,
+        multiple: true,
+        placeholder: "Add a Label...",
+        width: '400px',
+        tags: true,
+        dropdownAutoWidth: true
+    });
+
+    const componentViewModel = {
+        allOptions: ko.observableArray(),
+        selectedOptions: ko.observableArray(),
+    }
+
+    // sync: observable -> jquery
+    const fired = [false];
+
+    componentViewModel.selectedOptions.subscribe(function(newSelections) {
+        if (fired[0] != false) {
+            fired[0] = false;
+
+            return;
+        }
+
+        fired[0] = true;
+        $labels.val(newSelections);
+        $labels.trigger('change');
     });
 
     return componentViewModel;
