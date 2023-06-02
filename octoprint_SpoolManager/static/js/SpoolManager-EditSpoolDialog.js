@@ -129,9 +129,18 @@ function SpoolManagerEditSpoolDialog(props) {
         });
     };
 
+    self._createSpoolItemForEditing = function() {
+        self.spoolItemForEditing = new SpoolItem(null, true, { catalogs: self.catalogs });
+
+        self.spoolItemForEditing.isInActive.subscribe(function(newValue){
+            self.spoolItemForEditing.isActive(!newValue);
+        });
+
+        return self.spoolItemForEditing;
+    };
+
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////// PUBLIC
     self.initBinding = function(apiClient, pluginSettings, printerProfilesViewModel){
-
         self.autoUpdateEnabled = false;
         self.apiClient = apiClient;
         self.pluginSettings = pluginSettings;
@@ -159,43 +168,45 @@ function SpoolManagerEditSpoolDialog(props) {
         // initial coloring
         self._createSpoolItemForEditing();
         self._updateFilamentIcon(self.spoolItemForEditing.color());
-        self.spoolItemForEditing.color.subscribe(function(newColor){
+        self.spoolItemForEditing.color.subscribe(function(newColor) {
             self._updateFilamentIcon(newColor);
-            var colorName = tinycolor(newColor).toName();
+
+            const colorName = tinycolor(newColor).toName();
+
             if (colorName != false){
                 self.spoolItemForEditing.colorName(colorName);
             }
         });
         // ----------------- start: weight stuff
-        var remainingWeightKo = self.spoolItemForEditing.remainingWeight;
-        var totalWeightKo = self.spoolItemForEditing.totalWeight;
-        var usedWeightKo = self.spoolItemForEditing.usedWeight;
-        var remainingCombinedWeightKo = self.spoolItemForEditing.remainingCombinedWeight;
-        var spoolWeightKo = self.spoolItemForEditing.spoolWeight;
-        var totalCombinedWeightKo = self.spoolItemForEditing.totalCombinedWeight;
-        var totalLengthKo = self.spoolItemForEditing.totalLength;
-        var usedLengthKo = self.spoolItemForEditing.usedLength;
-        var remainingLengthKo = self.spoolItemForEditing.remainingLength;
-        var densityKo = self.spoolItemForEditing.density;
-        var diameterKo = self.spoolItemForEditing.diameter;
-        var usedPercentageKo = self.spoolItemForEditing.usedPercentage;
-        var remainingPercentageKo = self.spoolItemForEditing.remainingPercentage;
-        var usedLengthPercentageKo = self.spoolItemForEditing.usedLengthPercentage;
-        var remainingLengthPercentageKo = self.spoolItemForEditing.remainingLengthPercentage;
-        var drivenScopeKo = self.spoolItemForEditing.drivenScope;
+        const remainingWeightKo = self.spoolItemForEditing.remainingWeight;
+        const totalWeightKo = self.spoolItemForEditing.totalWeight;
+        const usedWeightKo = self.spoolItemForEditing.usedWeight;
+        const remainingCombinedWeightKo = self.spoolItemForEditing.remainingCombinedWeight;
+        const spoolWeightKo = self.spoolItemForEditing.spoolWeight;
+        const totalCombinedWeightKo = self.spoolItemForEditing.totalCombinedWeight;
+        const totalLengthKo = self.spoolItemForEditing.totalLength;
+        const usedLengthKo = self.spoolItemForEditing.usedLength;
+        const remainingLengthKo = self.spoolItemForEditing.remainingLength;
+        const densityKo = self.spoolItemForEditing.density;
+        const diameterKo = self.spoolItemForEditing.diameter;
+        const usedPercentageKo = self.spoolItemForEditing.usedPercentage;
+        const remainingPercentageKo = self.spoolItemForEditing.remainingPercentage;
+        const usedLengthPercentageKo = self.spoolItemForEditing.usedLengthPercentage;
+        const remainingLengthPercentageKo = self.spoolItemForEditing.remainingLengthPercentage;
+        const drivenScopeKo = self.spoolItemForEditing.drivenScope;
 
-        function addition(a, b) {
+        const addition = (a, b) => {
             return a + b;
-        }
-
-        function subtraction(a, b) {
+        };
+        const subtraction = (a, b) => {
             return a - b;
-        }
+        };
 
         // Subscriptions for auto updates
 
         totalWeightKo.subscribe(function (newValue) {
-            var iAmRootChange = self.amIRootChange(totalWeightKo);
+            const iAmRootChange = self.amIRootChange(totalWeightKo);
+
             if (drivenScopeKo() === SPOOL) {
                 self.updateSpoolWithScopes();
             } else {
@@ -208,14 +219,16 @@ function SpoolManagerEditSpoolDialog(props) {
         });
 
         totalLengthKo.subscribe(function (newValue) {
-            var iAmRootChange = self.amIRootChange(totalLengthKo);
+            const iAmRootChange = self.amIRootChange(totalLengthKo);
+
             self.doUnitConversion(totalLengthKo, totalWeightKo, self.convertToWeight);
             self.updatePercentages(usedLengthPercentageKo, remainingLengthPercentageKo, totalLengthKo, usedLengthKo);
             self.resetLocksIf(iAmRootChange);
         });
 
         usedWeightKo.subscribe(function (newValue) {
-            var iAmRootChange = self.amIRootChange(usedWeightKo);
+            const iAmRootChange = self.amIRootChange(usedWeightKo);
+
             self.doUnitConversion(usedWeightKo, usedLengthKo, self.convertToLength);
             self.updateFilamentRemainingWithStates();
             self.updatePercentages(usedPercentageKo, remainingPercentageKo, totalWeightKo, usedWeightKo);
@@ -223,14 +236,16 @@ function SpoolManagerEditSpoolDialog(props) {
         });
 
         usedLengthKo.subscribe(function (newValue) {
-            var iAmRootChange = self.amIRootChange(usedLengthKo);
+            const iAmRootChange = self.amIRootChange(usedLengthKo);
+
             self.doUnitConversion(usedLengthKo, usedWeightKo, self.convertToWeight);
             self.updatePercentages(usedLengthPercentageKo, remainingLengthPercentageKo, totalLengthKo, usedLengthKo);
             self.resetLocksIf(iAmRootChange);
         });
 
         remainingWeightKo.subscribe(function (newValue) {
-            var iAmRootChange = self.amIRootChange(remainingWeightKo);
+            const iAmRootChange = self.amIRootChange(remainingWeightKo);
+
             if (drivenScopeKo() === COMBINED) {
                 self.updateCombinedRemainingWithScopes();
             }
@@ -241,26 +256,30 @@ function SpoolManagerEditSpoolDialog(props) {
         });
 
         remainingLengthKo.subscribe(function (newValue) {
-            var iAmRootChange = self.amIRootChange(remainingLengthKo);
+            const iAmRootChange = self.amIRootChange(remainingLengthKo);
+
             self.doUnitConversion(remainingLengthKo, remainingWeightKo, self.convertToWeight);
             self.updatePercentages(usedLengthPercentageKo, remainingLengthPercentageKo, totalLengthKo, usedLengthKo);
             self.resetLocksIf(iAmRootChange);
         });
 
         densityKo.subscribe(function (newValue) {
-            var iAmRootChange = self.amIRootChange(densityKo);
+            const iAmRootChange = self.amIRootChange(densityKo);
+
             self.convertAllUnits();
             self.resetLocksIf(iAmRootChange);
         })
 
         diameterKo.subscribe(function (newValue) {
-            var iAmRootChange = self.amIRootChange(diameterKo);
+            const iAmRootChange = self.amIRootChange(diameterKo);
+
             self.convertAllUnits();
             self.resetLocksIf(iAmRootChange);
         })
 
         spoolWeightKo.subscribe(function (newValue) {
-            var iAmRootChange = self.amIRootChange(spoolWeightKo);
+            const  iAmRootChange = self.amIRootChange(spoolWeightKo);
+
             if (drivenScopeKo() === FILAMENT) {
                 self.updateFilamentInitialWithScopes();
             } else if (drivenScopeKo() === COMBINED) {
@@ -271,7 +290,8 @@ function SpoolManagerEditSpoolDialog(props) {
         });
 
         totalCombinedWeightKo.subscribe(function (newValue) {
-            var iAmRootChange = self.amIRootChange(totalCombinedWeightKo);
+            const iAmRootChange = self.amIRootChange(totalCombinedWeightKo);
+
             if (drivenScopeKo() === FILAMENT) {
                 self.updateFilamentInitialWithScopes();
             } else if (drivenScopeKo() === SPOOL) {
@@ -281,7 +301,8 @@ function SpoolManagerEditSpoolDialog(props) {
         });
 
         remainingCombinedWeightKo.subscribe(function (newValue) {
-            var iAmRootChange = self.amIRootChange(remainingCombinedWeightKo);
+            const iAmRootChange = self.amIRootChange(remainingCombinedWeightKo);
+
             if (drivenScopeKo() === FILAMENT) {
                 self.updateFilamentRemainingWithScopes();
             }
@@ -413,19 +434,8 @@ function SpoolManagerEditSpoolDialog(props) {
 
     self.afterBinding = function () {};
 
-    self._createSpoolItemForEditing = function() {
-        self.spoolItemForEditing = new SpoolItem(null, true, { catalogs: self.catalogs });
-
-        self.spoolItemForEditing.isInActive.subscribe(function(newValue){
-            self.spoolItemForEditing.isActive(!newValue);
-        });
-
-        return self.spoolItemForEditing;
-    };
-
     self.createSpoolItemForTable = function(spoolData) {
-        var newSpoolItem = new SpoolItem(spoolData, false, { catalogs: self.catalogs });
-        return newSpoolItem;
+        return new SpoolItem(spoolData, false, { catalogs: self.catalogs });
     };
 
     self.updateCatalogs = function(allCatalogs) {
@@ -442,13 +452,19 @@ function SpoolManagerEditSpoolDialog(props) {
     };
 
     self.updateTemplateSpools = function(templateSpoolsData) {
-        var spoolItemsArray = [];
-        if (templateSpoolsData != null && templateSpoolsData.length !=0){
-            spoolItemsArray = ko.utils.arrayMap(templateSpoolsData, function (spoolData) {
-                var result = self.createSpoolItemForTable(spoolData);
-                return result;
-            });
+        if (
+            !templateSpoolsData ||
+            !templateSpoolsData.length
+        ) {
+            self.templateSpools([]);
+
+            return;
         }
+
+        const spoolItemsArray = ko.utils.arrayMap(templateSpoolsData, function (spoolData) {
+            return self.createSpoolItemForTable(spoolData);
+        });
+
         self.templateSpools(spoolItemsArray);
     };
 
@@ -656,8 +672,8 @@ function SpoolManagerEditSpoolDialog(props) {
 
     self.selectAndCopyTemplateSpool = function() {
         /* needed for Filter-Search dropdown-menu */
-        $('.dropdown-menu.keep-open').click(function(e) {
-            e.stopPropagation();
+        $('.dropdown-menu.keep-open').click(function(event) {
+            event.stopPropagation();
         });
 
         self.templateSpoolDialog.modal({
