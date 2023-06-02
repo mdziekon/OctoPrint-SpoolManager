@@ -28,50 +28,7 @@ function ComponentFactory(pluginId) {
         return componentViewModel;
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////// DATETIME - PICKER
-    /*
-    <div class="input-append datetime">
-        <input id="DueDate" type="text" value="13.11.2017 13:24" class="input-large; text-right"><span class="add-on" id="DueDate-Icon"><i class="icon-th"></i></span>
-    </div>
-    */
-    this.createDateTimePicker = function(elementId, showTimePicker){
-
-        if (showTimePicker == null){
-            showTimePicker = true;
-            dateTimeFormat = 'd.m.Y H:i';
-        }
-        if (showTimePicker == false){
-            dateTimeFormat = 'd.m.Y';
-        }
-
-        var componentViewModel = {
-            currentDateTime: ko.observable(),
-            isEnabled: ko.observable(true)
-        }
-
-        var elementSelector = "#" + elementId ;
-        // Build defualt widget
-        var datePicker = $(elementSelector).datetimepicker({
-            format:dateTimeFormat,
-            closeOnDateSelect:true,
-            closeOnTimeSelect:false,
-            timepicker:showTimePicker,
-            weeks:true,
-        });
-        jQuery.datetimepicker.setLocale('en');
-
-        $($(elementSelector).parent().find('span[class=add-on]')[0]).on('click', function () {
-            if (componentViewModel.isEnabled() == true){
-                $(elementSelector).datetimepicker('show');
-            }
-        });
-
-
-        // sync: jquery -> observable
-
-        return componentViewModel;
-    }
-
+    this.createDateTimePicker = ComponentFactory.createDateTimePicker;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////// DATE - PICKER
     /* DEPRECATED use createDateTimePicker */
@@ -329,6 +286,48 @@ ComponentFactory.createColorPicker = (elementId) => {
 
         newColorCode = newColor.substr(1);
         $pickColor.setColor(newColorCode);
+    });
+
+    return componentViewModel;
+};
+
+/*
+<div class="input-append datetime">
+    <input id="DueDate" type="text" value="13.11.2017 13:24" class="input-large; text-right"><span class="add-on" id="DueDate-Icon"><i class="icon-th"></i></span>
+</div>
+*/
+ComponentFactory.createDateTimePicker = (elementId, showTimePicker) => {
+    if (showTimePicker == null) {
+        showTimePicker = true;
+        dateTimeFormat = 'd.m.Y H:i';
+    }
+    if (showTimePicker == false) {
+        dateTimeFormat = 'd.m.Y';
+    }
+
+    const componentViewModel = {
+        currentDateTime: ko.observable(),
+        isEnabled: ko.observable(true)
+    }
+
+    const elementSelector = `#${elementId}`;
+
+    // Attach widget to DOM
+    $(elementSelector).datetimepicker({
+        format: dateTimeFormat,
+        closeOnDateSelect: true,
+        closeOnTimeSelect: false,
+        timepicker: showTimePicker,
+        weeks: true,
+    });
+    jQuery.datetimepicker.setLocale('en');
+
+    const addonBtnElement = $(elementSelector).parent().find('span[class=add-on]')[0];
+
+    $(addonBtnElement).on('click', function () {
+        if (componentViewModel.isEnabled() == true) {
+            $(elementSelector).datetimepicker('show');
+        }
     });
 
     return componentViewModel;
