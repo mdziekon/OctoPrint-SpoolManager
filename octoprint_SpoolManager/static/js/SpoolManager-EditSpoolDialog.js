@@ -47,7 +47,8 @@ function SpoolManagerEditSpoolDialog(props){
     };
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////// ITEM MODEL
-    var SpoolItem = function(spoolData, editable) {
+    var SpoolItem = function(spoolData, editable, params) {
+        const { catalogs } = params ?? {};
         // Init Item
 
         // if we use the Item for Editing we need to initialise the widget-model as well , e.g. Option-Values, Suggestion-List
@@ -161,22 +162,19 @@ function SpoolManagerEditSpoolDialog(props){
         this.drivenScopeOptions = FILAMENT_STATS_CALC_OPTIONS;
 
         // Fill Item with data
-        this.update(spoolData);
+        this.update(spoolData, { catalogs });
     }
 
-    SpoolItem.prototype.update = function (data) {
-        var updateData = data || {}
+    SpoolItem.prototype.update = function (data, params) {
+        var updateData = data || {};
+        const { catalogs } = params ?? {};
 
-        // update latest all catalog
-        if (self.catalogs != null){
-            // labels
+        if (catalogs) {
             this.allLabels.removeAll();
-            ko.utils.arrayPushAll(this.allLabels, self.catalogs.labels);
-            // materials
-            // this.allMaterials(self.catalogs.materials);
+            ko.utils.arrayPushAll(this.allLabels, catalogs.labels);
 
-            //vendors
-            this.allVendors(self.catalogs.vendors);
+            // this.allMaterials(catalogs.materials);
+            this.allVendors(catalogs.vendors);
         }
 
         this.selectedFromQRCode(updateData.selectedFromQRCode);
@@ -672,7 +670,7 @@ function SpoolManagerEditSpoolDialog(props){
     }
 
     this._createSpoolItemForEditing = function(){
-        self.spoolItemForEditing = new SpoolItem(null, true);
+        self.spoolItemForEditing = new SpoolItem(null, true, { catalogs: self.catalogs });
 
         self.spoolItemForEditing.isInActive.subscribe(function(newValue){
             self.spoolItemForEditing.isActive(!newValue);
@@ -682,7 +680,7 @@ function SpoolManagerEditSpoolDialog(props){
     }
 
     this.createSpoolItemForTable = function(spoolData){
-        var newSpoolItem = new SpoolItem(spoolData, false);
+        var newSpoolItem = new SpoolItem(spoolData, false, { catalogs: self.catalogs });
         return newSpoolItem;
     }
 
@@ -767,7 +765,7 @@ function SpoolManagerEditSpoolDialog(props){
         // TODO weight: renaming
         self.autoUpdateEnabled = false;
 
-        self.spoolItemForEditing.update(updateData);
+        self.spoolItemForEditing.update(updateData, { catalogs: self.catalogs });
 
         if (self.noteEditor) {
             if (
