@@ -108,11 +108,11 @@ function SpoolManagerEditSpoolDialog(props){
 
         // Assign default values for editing
         // overwrite and/or add attributes
-        var vendorViewModel = self.componentFactory.createSelectWithFilter("spool-vendor-select", $('#spool-form'));
+        const vendorViewModel = ComponentFactory.createSelectWithFilter("spool-vendor-select", $('#spool-form'));
+        const materialViewModel = ComponentFactory.createSelectWithFilter("spool-material-select", $('#spool-form'));
+
         this.vendor = vendorViewModel.selectedOption;
         this.allVendors = vendorViewModel.allOptions;
-
-        var materialViewModel = self.componentFactory.createSelectWithFilter("spool-material-select", $('#spool-form'));
         this.material = materialViewModel.selectedOption;
         // this.allMaterials = materialViewModel.allOptions;
 
@@ -138,10 +138,10 @@ function SpoolManagerEditSpoolDialog(props){
         });
 
         if (editable == true) {
-            const colorViewModel = self.componentFactory.createColorPicker("filament-color-picker");
-            const firstUseViewModel = self.componentFactory.createDateTimePicker("firstUse-date-picker");
-            const lastUseViewModel = self.componentFactory.createDateTimePicker("lastUse-date-picker");
-            const purchasedOnViewModel = self.componentFactory.createDateTimePicker("purchasedOn-date-picker", false);
+            const colorViewModel = ComponentFactory.createColorPicker("filament-color-picker");
+            const firstUseViewModel = ComponentFactory.createDateTimePicker("firstUse-date-picker");
+            const lastUseViewModel = ComponentFactory.createDateTimePicker("lastUse-date-picker");
+            const purchasedOnViewModel = ComponentFactory.createDateTimePicker("purchasedOn-date-picker", false);
 
             this.color = colorViewModel.selectedColor;
             this.color(DEFAULT_COLOR);
@@ -150,7 +150,7 @@ function SpoolManagerEditSpoolDialog(props){
             this.purchasedOn = purchasedOnViewModel.currentDateTime;
         }
 
-        const labelsViewModel = self.componentFactory.createLabels("spool-labels-select", $('#spool-form'));
+        const labelsViewModel = ComponentFactory.createLabels("spool-labels-select", $('#spool-form'));
 
         this.labels = labelsViewModel.selectedOptions;
         this.allLabels = labelsViewModel.allOptions;
