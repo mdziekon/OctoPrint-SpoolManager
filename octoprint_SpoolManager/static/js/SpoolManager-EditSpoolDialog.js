@@ -18,7 +18,7 @@ const SPOOL = "spool";
 const DEFAULT_DRIVEN_SCOPE = COMBINED;
 
 // Dialog functionality
-function SpoolManagerEditSpoolDialog(props){
+function SpoolManagerEditSpoolDialog(props) {
     const { managerViewModel } = props;
 
     var self = this;
@@ -29,10 +29,6 @@ function SpoolManagerEditSpoolDialog(props){
         SPOOL: SPOOL,
         COMBINED: COMBINED,
     };
-
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////// ITEM MODEL
-
-
 
     ///////////////////////////////////////////////////////////////////////////////////////////////// Instance Variables
     self.componentFactory = new ComponentFactory();
@@ -53,7 +49,6 @@ function SpoolManagerEditSpoolDialog(props){
     // Knockout stuff
     this.isExistingSpool = ko.observable(false);
     this.spoolSelectedByQRCode = ko.observable(false);
-
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////// HELPER
     const isEveryMandatoryFieldValid = () => {
@@ -102,19 +97,19 @@ function SpoolManagerEditSpoolDialog(props){
         const displayName = self.spoolItemForEditing.displayName() || "";
 
         return (displayName.trim().length > 0);
-    }
+    };
 
     self.isColorNamePresent = function() {
         const colorName = self.spoolItemForEditing.colorName() || "";
 
         return (colorName.trim().length > 0);
-    }
+    };
 
     self.isTotalCombinedWeightPresent = function() {
         const totalCombinedWeight = self.spoolItemForEditing.totalCombinedWeight();
 
         return (String(totalCombinedWeight || "").trim().length > 0);
-    }
+    };
 
     this._updateFilamentIcon = function(newColor) {
         const primaryColor = newColor;
@@ -414,12 +409,11 @@ function SpoolManagerEditSpoolDialog(props){
         };
 
         // ----------------- end: weight stuff
-    }
+    };
 
-    this.afterBinding = function(){
-    }
+    this.afterBinding = function () {};
 
-    this._createSpoolItemForEditing = function(){
+    this._createSpoolItemForEditing = function() {
         self.spoolItemForEditing = new SpoolItem(null, true, { catalogs: self.catalogs });
 
         self.spoolItemForEditing.isInActive.subscribe(function(newValue){
@@ -427,14 +421,14 @@ function SpoolManagerEditSpoolDialog(props){
         });
 
         return self.spoolItemForEditing;
-    }
+    };
 
-    this.createSpoolItemForTable = function(spoolData){
+    this.createSpoolItemForTable = function(spoolData) {
         var newSpoolItem = new SpoolItem(spoolData, false, { catalogs: self.catalogs });
         return newSpoolItem;
-    }
+    };
 
-    this.updateCatalogs = function(allCatalogs){
+    this.updateCatalogs = function(allCatalogs) {
         self.catalogs = allCatalogs;
         if (self.catalogs != null){
             self.allMaterials(self.catalogs["materials"]);
@@ -445,11 +439,9 @@ function SpoolManagerEditSpoolDialog(props){
             self.allVendors([]);
             self.allColors([]);
         }
+    };
 
-    }
-
-    this.updateTemplateSpools = function(templateSpoolsData){
-
+    this.updateTemplateSpools = function(templateSpoolsData) {
         var spoolItemsArray = [];
         if (templateSpoolsData != null && templateSpoolsData.length !=0){
             spoolItemsArray = ko.utils.arrayMap(templateSpoolsData, function (spoolData) {
@@ -458,7 +450,7 @@ function SpoolManagerEditSpoolDialog(props){
             });
         }
         self.templateSpools(spoolItemsArray);
-    }
+    };
 
     this.showDialog = function(spoolItem, params) {
         const { onCloseDialog } = params;
@@ -538,18 +530,18 @@ function SpoolManagerEditSpoolDialog(props){
         self.autoUpdateEnabled = true;
     };
 
-    self.copySpoolItem = function(){
+    self.copySpoolItem = function() {
         self._copySpoolItemForEditing(self.spoolItemForEditing);
-    }
+    };
 
     self.copySpoolItemFromTemplate = function(spoolItem) {
         self._copySpoolItemForEditing(spoolItem);
         self._cleanupSpoolItemAfterCopy(spoolItem);
 
         self.templateSpoolDialog.modal('hide');
-    }
+    };
 
-    self._copySpoolItemForEditing = function(spoolItem){
+    self._copySpoolItemForEditing = function(spoolItem) {
         self.isExistingSpool(false);
         let spoolItemCopy = ko.mapping.toJS(spoolItem);
         self._updateActiveSpoolItem(spoolItemCopy);
@@ -613,10 +605,10 @@ function SpoolManagerEditSpoolDialog(props){
 
         // read current note values and push to item, because there is no 2-way binding
 
-//        self.printJobItemForEdit.noteText(noteText);
-//        self.printJobItemForEdit.noteDeltaFormat(noteDeltaFormat);
-//        self.printJobItemForEdit.noteHtml(noteHtml);
-//
+        // self.printJobItemForEdit.noteText(noteText);
+        // self.printJobItemForEdit.noteDeltaFormat(noteDeltaFormat);
+        // self.printJobItemForEdit.noteHtml(noteHtml);
+
         const callResult = await self.apiClient.callSaveSpool(self.spoolItemForEditing);
 
         if (!callResult.isSuccess) {
@@ -631,7 +623,7 @@ function SpoolManagerEditSpoolDialog(props){
         self.spoolItemForEditing.isSpoolVisible(false);
         self.spoolDialog.modal('hide');
         self.closeDialogHandler(true, "save");
-    }
+    };
 
     self.deleteSpoolItem = async function() {
         const hasConfirmed = confirm("Do you really want to delete this spool?");
@@ -654,26 +646,25 @@ function SpoolManagerEditSpoolDialog(props){
         self.spoolItemForEditing.isSpoolVisible(false);
         self.spoolDialog.modal('hide');
         self.closeDialogHandler(true);
-    }
+    };
 
-    self.selectSpoolItemForPrinting = function(){
+    self.selectSpoolItemForPrinting = function() {
         self.spoolItemForEditing.isSpoolVisible(false);
         self.spoolDialog.modal('hide');
         self.closeDialogHandler(false, "selectSpoolForPrinting", self.spoolItemForEditing);
-    }
+    };
 
-    self.selectAndCopyTemplateSpool = function(){
-
+    self.selectAndCopyTemplateSpool = function() {
         /* needed for Filter-Search dropdown-menu */
         $('.dropdown-menu.keep-open').click(function(e) {
             e.stopPropagation();
         });
 
         self.templateSpoolDialog.modal({
-                minHeight: function () {
-                    return Math.max($.fn.modal.defaults.maxHeight() - 80, 250);
-                },
-                show: true
-            });
-    }
-}
+            minHeight: function () {
+                return Math.max($.fn.modal.defaults.maxHeight() - 80, 250);
+            },
+            show: true
+        });
+    };
+};
