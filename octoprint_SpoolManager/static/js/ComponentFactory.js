@@ -30,54 +30,6 @@ function ComponentFactory(pluginId) {
 
     this.createDateTimePicker = ComponentFactory.createDateTimePicker;
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////// DATE - PICKER
-    /* DEPRECATED use createDateTimePicker */
-    this.createDatePicker = function(elementId){
-
-       var componentViewModel = {
-            currentDate: ko.observable(new Date())
-        }
-
-        var elementSelector = "#" + elementId ;
-        // Build defualt widget
-        var datePicker = $(elementSelector).datepicker({
-            format: "dd.mm.yyyy"
-        });
-        jQuery.datetimepicker.setLocale('en');
-
-        // sync: jquery -> observable
-        datePicker.on('pick.datepicker', function (event) {
-            newDate = event.date;
-            if (componentViewModel.currentDate() == null || newDate.getTime() != componentViewModel.currentDate().getTime() ){
-                componentViewModel.currentDate(newDate);
-            }
-            // new future date
-            //  if (e.date < new Date()) {
-            //    e.preventDefault(); // Prevent to pick the date
-            //  }
-        });
-
-        // sync: observable -> jquery
-        componentViewModel.currentDate.subscribe(function(newDate){
-            currentDate = datePicker.datepicker('getDate');
-            if (newDate == null){
-                datePicker.datepicker('reset');
-            } else {
-                newDateTime = newDate.getTime();
-                if (componentViewModel.currentDate() == null || newDateTime != currentDate.getTime()){
-                    if (newDate != null){
-                        datePicker.datepicker('setDate', newDate);
-                    } else {
-                        datePicker.datepicker('reset');
-                    }
-                }
-            }
-        });
-
-        return componentViewModel;
-    }
-
-
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////// LABELS
     this.createLabels = function(elementId, dropDownParent){
 
