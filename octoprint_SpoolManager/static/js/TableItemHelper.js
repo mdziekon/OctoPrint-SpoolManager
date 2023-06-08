@@ -194,17 +194,13 @@ function TableItemHelper(loadItemsFunction, defaultPageSize, defaultSortColumn, 
         self._loadItems();
     }
 
-    self.updateCatalogs = function(catalogs){
+    self.updateCatalogs = function(newCatalogs) {
         isUpdatingCatalogs = true;
 
-        self.allCatalogs = catalogs;
-        var materialsCatalog = self.allCatalogs["materials"];
-        var vendorsCatalog = self.allCatalogs["vendors"];
-        var colorsCatalog = self.allCatalogs["colors"];
-
-        self.allMaterials(materialsCatalog);
-        self.allVendors(vendorsCatalog);
-        self.allColors(colorsCatalog);
+        self.allCatalogs = newCatalogs;
+        self.allMaterials(self.allCatalogs.materials);
+        self.allVendors(self.allCatalogs.vendors);
+        self.allColors(self.allCatalogs.colors);
 
         if (self.showAllMaterialsForFilter()) {
             handleSelectAllMaterials();
@@ -239,7 +235,7 @@ function TableItemHelper(loadItemsFunction, defaultPageSize, defaultSortColumn, 
             if ("desc" == self.sortOrder()){
                 self.sortOrder("asc");
             } else {
-               self.sortOrder("desc");
+                self.sortOrder("desc");
             }
         } else {
             self.sortColumn(newSortColumn);
@@ -255,7 +251,7 @@ function TableItemHelper(loadItemsFunction, defaultPageSize, defaultSortColumn, 
             if ("desc" == self.sortOrder()){
                 return ("(descending)");
             } else {
-               return ("(ascending)");
+                return ("(ascending)");
             }
         }
         return "";
@@ -334,7 +330,7 @@ function TableItemHelper(loadItemsFunction, defaultPageSize, defaultSortColumn, 
                 Math.ceil(self.totalItemCount() / self.pageSize()) - 1);
     });
 
-   self.pages = ko.dependentObservable(function() {
+    self.pages = ko.dependentObservable(function() {
         var pages = [];
         var i;
 
