@@ -177,16 +177,16 @@ function TableItemHelper(loadItemsFunction, defaultPageSize, defaultSortColumn, 
         }
     });
 
-    self._evalFilterLabel = function(allArray, selectionArray){
-        // check if all selected
-        var selectionCount = 0
-        for (let item of allArray) {
-            if (selectionArray.indexOf(item) != -1){
-                selectionCount++;
-            }
-        }
-        var allSelected = selectionCount ==  allArray.length
-        return allSelected == true ? "all" : selectionArray.length;
+    self._evalFilterLabel = function(allArray, selectionArray) {
+        const areAllExistingSelected = allArray.every((element) => {
+            return selectionArray.includes(element);
+        });
+
+        return (
+            areAllExistingSelected
+                ? "all"
+                : selectionArray.length
+        );
     };
 
     // ################################################################################################ public functions
@@ -276,36 +276,35 @@ function TableItemHelper(loadItemsFunction, defaultPageSize, defaultSortColumn, 
     }
 
     self.isFilterSelected = function(filterName) {
-        // return self.selectedFilterName() == filterName;
         return self.selectedFilterNameArrayKO().includes(filterName);
     };
 
-    self.buildFilterLabel = function(filterLabelName){
-        // spoolItemTableHelper.selectedColorsForFilter().length == spoolItemTableHelper.allColors().length ? 'all' : spoolItemTableHelper.selectedColorsForFilter().length
-        // to detecting all, we can't use the length, because if just the color is changed then length is still true
-        // so we need to compare each value
-        if ("color" == filterLabelName){
-            var selectionArray = self.selectedColorsForFilter(); // array of colorIds [#ffa500;orange, #ffffff;white]
-            var allColorArray = self.allColors(); // array of object with 'colorId=#ffa500;orange','color=#ffa500','colorName="orange"'
-            // check if all colors selected
-            var selectionCount = 0
-            for (let colorItem of allColorArray) {
-                var colorId = colorItem.colorId;
-                if (selectionArray.indexOf(colorId) != -1){
-                    selectionCount++;
-                }
-            }
-            var allColorsSelected = selectionCount ==  allColorArray.length
-            return allColorsSelected == true ? "all" : self.selectedColorsForFilter().length;
+    self.buildFilterLabel = function(filterLabelName) {
+        /**
+         * Check if all existing colors in the catalog are in the selected list.
+         * This way we prevent positives eg. when selected list contains something that no longer exist,
+         * but the length of both lists are still the same (eg. because of a new color).
+         */
+        if ("color" == filterLabelName) {
+            return self._evalFilterLabel(
+                self.allColors().map((existingColor) => existingColor.colorId),
+                self.selectedColorsForFilter(),
+            );
         }
-        if ("material" == filterLabelName){
-            return self._evalFilterLabel(self.allMaterials(), self.selectedMaterialsForFilter());
+        if ("material" == filterLabelName) {
+            return self._evalFilterLabel(
+                self.allMaterials(),
+                self.selectedMaterialsForFilter(),
+            );
         }
-        if ("vendor" == filterLabelName){
-            return self._evalFilterLabel(self.allVendors(), self.selectedVendorsForFilter());
+        if ("vendor" == filterLabelName) {
+            return self._evalFilterLabel(
+                self.allVendors(),
+                self.selectedVendorsForFilter(),
+            );
         }
 
-        return "not defined:" + filterLabelName;
+        return "unknown:" + filterLabelName;
     }
 
     // ############################################## PAGING
