@@ -8,6 +8,8 @@ function TableItemHelper(loadItemsFunction, defaultPageSize, defaultSortColumn, 
 
     var self = this;
 
+    let isUpdatingCatalogs = false;
+
     self.loadItemsFunction = loadItemsFunction;
     self.items = ko.observableArray([]);
     self.totalItemCount = ko.observable(0);
@@ -28,20 +30,68 @@ function TableItemHelper(loadItemsFunction, defaultPageSize, defaultSortColumn, 
 
     // Filtering - Material
     self.allMaterials = ko.observableArray([]);
-    self.showAllMaterialsForFilter = ko.observable(true);
     self.selectedMaterialsForFilter = ko.observableArray();
+    self.showAllMaterialsForFilter = ko.computed({
+        read: function () {
+            return self.selectedMaterialsForFilter().length === self.allMaterials().length;
+        },
+        write: function (isChecked) {
+            if (isChecked) {
+                handleSelectAllMaterials();
+            } else {
+                self.selectedMaterialsForFilter.removeAll();
+            }
+        },
+    }).extend({ throttle: 1 });
     // Filtering - Vendor
     self.allVendors = ko.observableArray([]);
-    self.showAllVendorsForFilter = ko.observable(true);
     self.selectedVendorsForFilter = ko.observableArray();
+    self.showAllVendorsForFilter = ko.computed({
+        read: function () {
+            return self.selectedVendorsForFilter().length === self.allVendors().length;
+        },
+        write: function (isChecked) {
+            if (isChecked) {
+                handleSelectAllVendors();
+            } else {
+                self.selectedVendorsForFilter.removeAll();
+            }
+        },
+    }).extend({ throttle: 1 });
     // Filtering - Color
     self.allColors = ko.observableArray([]);
-    self.showAllColorsForFilter = ko.observable(true);
     self.selectedColorsForFilter = ko.observableArray();
+    self.showAllColorsForFilter = ko.computed({
+        read: function () {
+            return self.selectedColorsForFilter().length === self.allColors().length;
+        },
+        write: function (isChecked) {
+            if (isChecked) {
+                handleSelectAllColors();
+            } else {
+                self.selectedColorsForFilter.removeAll();
+            }
+        },
+    }).extend({ throttle: 1 });
 
     self.isInitialLoadDone = false;
     // ############################################################################################### private functions
 
+    const handleSelectAllMaterials = () => {
+        self.selectedMaterialsForFilter().length = 0;
+        ko.utils.arrayPushAll(self.selectedMaterialsForFilter, self.allMaterials());
+    };
+
+    const handleSelectAllVendors = () => {
+        self.selectedVendorsForFilter().length = 0;
+        ko.utils.arrayPushAll(self.selectedVendorsForFilter, self.allVendors());
+    };
+
+    const handleSelectAllColors = () => {
+        const allColorIds = self.allColors().map((existingColor) => existingColor.colorId);
+
+        self.selectedColorsForFilter(allColorIds);
+    };
 
     self._evalFilter = function(allItems, selectedItems){
         var filterResult = ["all"];
@@ -101,35 +151,30 @@ function TableItemHelper(loadItemsFunction, defaultPageSize, defaultSortColumn, 
     });
 
     self.selectedMaterialsForFilter.subscribe(function(newValues) {
-        if (self.selectedMaterialsForFilter().length > 0){
-            self.showAllMaterialsForFilter(true);
-        } else{
-            self.showAllMaterialsForFilter(false);
+        if (isUpdatingCatalogs) {
+            return;
         }
+
         // TODO Optimize enable after the values where initialy changed
         self.reloadItems();
     });
     self.selectedVendorsForFilter.subscribe(function(newValues) {
-        if (self.selectedVendorsForFilter().length > 0){
-            self.showAllVendorsForFilter(true);
-        } else{
-            self.showAllVendorsForFilter(false);
+        if (isUpdatingCatalogs) {
+            return;
         }
+
         // TODO Optimize enable after the values where initialy changed
         self.reloadItems();
     });
     self.selectedColorsForFilter.subscribe(function(newValues) {
-        if (self.selectedColorsForFilter().length > 0){
-            self.showAllColorsForFilter(true);
-        } else{
-            self.showAllColorsForFilter(false);
+        if (isUpdatingCatalogs) {
+            return;
         }
 
-        if (self.selectedColorsForFilter().length != 0){
+        if (self.selectedColorsForFilter().length != 0) {
             // TODO Optimize enable after the values where initialy changed
             self.reloadItems();
         }
-
     });
 
     self._evalFilterLabel = function(allArray, selectionArray){
@@ -150,6 +195,8 @@ function TableItemHelper(loadItemsFunction, defaultPageSize, defaultSortColumn, 
     }
 
     self.updateCatalogs = function(catalogs){
+        isUpdatingCatalogs = true;
+
         self.allCatalogs = catalogs;
         var materialsCatalog = self.allCatalogs["materials"];
         var vendorsCatalog = self.allCatalogs["vendors"];
@@ -158,6 +205,18 @@ function TableItemHelper(loadItemsFunction, defaultPageSize, defaultSortColumn, 
         self.allMaterials(materialsCatalog);
         self.allVendors(vendorsCatalog);
         self.allColors(colorsCatalog);
+
+        if (self.showAllMaterialsForFilter()) {
+            handleSelectAllMaterials();
+        }
+        if (self.showAllVendorsForFilter()) {
+            handleSelectAllVendors();
+        }
+        if (self.showAllColorsForFilter()) {
+            handleSelectAllColors();
+        }
+
+        isUpdatingCatalogs = false;
     }
 
     self.paginatedItems = ko.dependentObservable(function() {
@@ -224,45 +283,6 @@ function TableItemHelper(loadItemsFunction, defaultPageSize, defaultSortColumn, 
         // return self.selectedFilterName() == filterName;
         return self.selectedFilterNameArrayKO().includes(filterName);
     };
-
-    self.doFilterSelectAll = function(data, catalogName){
-        let checked;
-        switch (catalogName) {
-            case "material":
-                checked = self.showAllMaterialsForFilter();
-                if (checked == true) {
-                    self.selectedMaterialsForFilter().length = 0;
-                    ko.utils.arrayPushAll(self.selectedMaterialsForFilter, self.allMaterials());
-                } else {
-                    self.selectedMaterialsForFilter.removeAll();
-                }
-                break;
-            case "vendor":
-                checked = self.showAllVendorsForFilter();
-                if (checked == true) {
-                    self.selectedVendorsForFilter().length = 0;
-                    ko.utils.arrayPushAll(self.selectedVendorsForFilter, self.allVendors());
-                } else {
-                    self.selectedVendorsForFilter.removeAll();
-                }
-                break;
-            case "color":
-                checked = self.showAllColorsForFilter();
-                if (checked == true) {
-                    self.selectedColorsForFilter().length = 0;
-                    // we are using an colorId as a checked attribute, we can just move the color-objects to the selectedArrary
-                    // ko.utils.arrayPushAll(self.spoolItemTableHelper.selectedColorsForFilter, self.spoolItemTableHelper.allColors());
-                    for (let i = 0; i < self.allColors().length; i++) {
-                        let colorObject = self.allColors()[i];
-                        self.selectedColorsForFilter().push(colorObject.colorId);
-                    }
-                    self.selectedColorsForFilter.valueHasMutated();
-                } else {
-                    self.selectedColorsForFilter.removeAll();
-                }
-                break;
-        }
-    }
 
     self.buildFilterLabel = function(filterLabelName){
         // spoolItemTableHelper.selectedColorsForFilter().length == spoolItemTableHelper.allColors().length ? 'all' : spoolItemTableHelper.selectedColorsForFilter().length
