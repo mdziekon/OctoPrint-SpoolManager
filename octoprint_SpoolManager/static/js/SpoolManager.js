@@ -1049,7 +1049,7 @@ $(function() {
         //////////////////////////////////////////////////////////////////////////////////////// PUBLIC VIEWMODEL - APIs
         // e.g. for CostEstaminator-Plugin
         self.api_getSelectedSpoolInformations = function() {
-            return self.selectedSpoolsForSidebar().map((spoolItemObservable) => {
+            return self.selectedSpoolsForSidebar().map((spoolItemObservable, spoolIdx) => {
                 const spoolItem = spoolItemObservable();
 
                 if (spoolItem === null) {
@@ -1057,7 +1057,7 @@ $(function() {
                 }
 
                 return {
-                    toolIndex: i,
+                    toolIndex: spoolIdx,
                     databaseId: spoolItem.databaseId(),
                     spoolName: spoolItem.displayName(),
                     vendor: spoolItem.vendor(),
