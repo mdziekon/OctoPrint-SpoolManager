@@ -1,87 +1,86 @@
-/**
- *
- */
-function ResetSettingsUtilV3(pluginSettings){
+function ResetSettingsUtilV3(pluginSettings) {
+    const pluginSettingsFromPlugin = pluginSettings;
 
-    var self = this;
-    var pluginSettingsFromPlugin = pluginSettings;
+    const RESET_BUTTON_ID = "resetSettingsButton"
+    const RESET_BUTTON_HTML = `<button id="${RESET_BUTTON_ID}" class="btn btn-warning" style="margin-right:3%">Reset Settings</button>`;
+    const RESET_BUTTON_SELECTOR = `#${RESET_BUTTON_ID}`;
 
-    var RESET_BUTTON_ID = "resetSettingsButton"
-    var RESET_BUTTON_HTML = "<button id='"+RESET_BUTTON_ID+"' class='btn btn-warning' style='margin-right:3%'>Reset Settings</button>"
+    this.assignResetSettingsFeature = function (PLUGIN_ID_string, mapSettingsToViewModel_function) {
+        /**
+         * TODO: PrintJobHistory uses the same name ("resetSettingsButtonFunction")
+         * to check for event listener existence.
+         * Eventually, these two should live their separate lives, and not depend on one another,
+         * but for now keep the name for compatibility sake.
+         */
+        const resetSettingsButtonFunction = () => {
+            $(RESET_BUTTON_SELECTOR).hide();
+        };
 
-    this.assignResetSettingsFeature = function(PLUGIN_ID_string, mapSettingsToViewModel_function){
-        var resetSettingsButtonFunction = function(){
-            var resetButton = $("#" + RESET_BUTTON_ID).hide();
-        }
         // hide reset button when hidding settings. needed because of next dialog-shown event
-        var settingsDialog = $("#settings_dialog");
-        var settingsDialogDOMElement = settingsDialog.get(0);
+        const $settingsDialog = $("#settings_dialog");
+        const settingsDialogDOMElement = $settingsDialog.get(0);
 
-        var eventObject = $._data(settingsDialogDOMElement, 'events');
-        if (eventObject != undefined && eventObject.hide != undefined){
-            // already there, is it my function
-            if (eventObject.hide[0].handler.name != "resetSettingsButtonFunction"){
-                settingsDialog.on('hide', resetSettingsButtonFunction);
-            }
-        } else {
-            settingsDialog.on('hide', resetSettingsButtonFunction);
+        const eventObject = $._data(settingsDialogDOMElement, 'events');
+        if (
+            !eventObject?.hide ||
+            eventObject.hide[0].handler.name != resetSettingsButtonFunction.name
+        ) {
+            $settingsDialog.on('hide', resetSettingsButtonFunction);
         }
 
-        // add click hook for own plugin the check if resetSettings is available
-        var pluginSettingsLink = $("ul[id=settingsTabs] > li[id^=settings_plugin_"+PLUGIN_ID_string+"] > a[href^=\\#settings_plugin_"+PLUGIN_ID_string+"]:not([hooked="+PLUGIN_ID_string+"])");
+        const pluginSettingsLink = $("ul[id=settingsTabs] > li[id^=settings_plugin_"+PLUGIN_ID_string+"] > a[href^=\\#settings_plugin_"+PLUGIN_ID_string+"]:not([hooked="+PLUGIN_ID_string+"])");
         pluginSettingsLink.attr("hooked", PLUGIN_ID_string);
         pluginSettingsLink.click(function() {
             // call backend, is resetSettingsButtonEnabled
             // hide reset settings button
             $.ajax({
-                url: API_BASEURL + "plugin/"+PLUGIN_ID_string+"?action=isResetSettingsEnabled",
-                type: "GET"
-            }).done(function( data ){
-                var resetButton = $("#" + RESET_BUTTON_ID);
-                if (data.enabled == "true"){
+                url: `${API_BASEURL}plugin/${PLUGIN_ID_string}?action=isResetSettingsEnabled`,
+                type: "GET",
+            }).done(function(data) {
+                let resetButton = $(RESET_BUTTON_SELECTOR);
+
+                if (data.enabled == "true") {
                     // build-button, if necessary
-                    if (resetButton.length == 0){
-                        // add button to page
+                    if (resetButton.length == 0) {
                         $(".modal-footer > .aboutlink").after(RESET_BUTTON_HTML);
-                        resetButton = $("#" + RESET_BUTTON_ID);
+                        resetButton = $(RESET_BUTTON_SELECTOR);
                     }
 
                     // add/update click action
-                    resetButton.unbind( "click" );
+                    resetButton.unbind("click");
                     resetButton.click(function() {
                         $.ajax({
-                            url: API_BASEURL + "plugin/"+PLUGIN_ID_string+"?action=resetSettings",
-                            type: "GET"
-                        }).done(function( data ){
+                            url: `${API_BASEURL}plugin/${PLUGIN_ID_string}?action=resetSettings`,
+                            type: "GET",
+                        }).done(function(data) {
                             new PNotify({
                                 title: "Default settings saved!",
                                 text: "The plugin settings have now been reset to the default values.<br>Please do a Browser reload (Strg + F5) to update all settings in the UI.",
                                 type: "info",
-                                hide: true
+                                hide: true,
                             });
                             // reset all values
-                            for(var propName in data){
-                                propValue = data[propName];
+                            for (let propName in data) {
+                                const propValue = data[propName];
                                 // nested object, like databaseSettings? only a depth of 1
-                                if ("object" == typeof(propValue)){
-                                    for(var subPropName in propValue){
+                                if (typeof propValue == "object") {
+                                    for (let subPropName in propValue) {
                                         subPropValue = propValue[subPropName];
-//                                        console.log(propName + '-' + subPropName + ':' + subPropValue);
                                         pluginSettingsFromPlugin[propName][subPropName](propValue);
                                     }
                                 } else {
-//                                    console.log(propName + ': ' + propValue);
                                     pluginSettingsFromPlugin[propName](propValue);
                                 }
                             }
-                            // delegae to the client. So lient is able to reset/init other values
+
+                            // delegate to the client. So client is able to reset/init other values
                             mapSettingsToViewModel_function(data);
                         });
                     });
 
                     resetButton.show();
                 } else {
-                    if (resetButton.length != 0){
+                    if (resetButton.length) {
                         resetButton.hide();
                     }
                 }
@@ -89,11 +88,10 @@ function ResetSettingsUtilV3(pluginSettings){
         });
 
         // default behaviour -> hide reset button --> if not already assigned
-        var otherSettingsLink = $("ul[id=settingsTabs] > li[id^=settings_] > a[href^=\\#settings_]:not([hooked])");
-        if (otherSettingsLink.length != 0){
+        const otherSettingsLink = $("ul[id=settingsTabs] > li[id^=settings_] > a[href^=\\#settings_]:not([hooked])");
+        if (otherSettingsLink.length) {
             otherSettingsLink.attr("hooked", "otherSettings");
             otherSettingsLink.click(resetSettingsButtonFunction);
         }
     }
-
 }
