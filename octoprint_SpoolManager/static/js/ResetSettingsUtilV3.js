@@ -87,8 +87,8 @@ function ResetSettingsUtilV3(pluginSettings) {
                         });
 
                         new PNotify({
-                            title: "Default settings saved!",
-                            text: "The plugin settings have now been reset to the default values.<br>Please do a Browser reload (Strg + F5) to update all settings in the UI.",
+                            title: `Plugin settings reset`,
+                            text: `The "${PLUGIN_ID_string}" plugin settings have been reset to the default values.<br>Please perform a browser's cache reload (PC: CTRL + F5 / Mac: Shift + R) to update all settings in the UI.`,
                             type: "info",
                             hide: true,
                         });
@@ -99,7 +99,12 @@ function ResetSettingsUtilV3(pluginSettings) {
                         // delegate to the client. So client is able to reset/init other values
                         mapSettingsToViewModel_function(newSettingsData);
                     } catch (error) {
-                        // TODO: error handling
+                        new PNotify({
+                            title: "ERROR: Plugin settings reset",
+                            text: "An unknown error occurred while performing a request",
+                            type: "error",
+                            hide: true,
+                        });
                     }
                 });
 
