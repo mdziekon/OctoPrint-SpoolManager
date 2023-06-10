@@ -54,11 +54,13 @@ function ResetSettingsUtilV3(pluginSettings) {
 
                 // add/update click action
                 resetButton.unbind("click");
-                resetButton.click(function() {
-                    $.ajax({
-                        url: `${API_BASEURL}plugin/${PLUGIN_ID_string}?action=resetSettings`,
-                        type: "GET",
-                    }).done(function(newSettingsData) {
+                resetButton.click(async () => {
+                    try {
+                        const newSettingsData = await $.ajax({
+                            url: `${API_BASEURL}plugin/${PLUGIN_ID_string}?action=resetSettings`,
+                            type: "GET",
+                        });
+
                         new PNotify({
                             title: "Default settings saved!",
                             text: "The plugin settings have now been reset to the default values.<br>Please do a Browser reload (Strg + F5) to update all settings in the UI.",
@@ -84,7 +86,9 @@ function ResetSettingsUtilV3(pluginSettings) {
 
                         // delegate to the client. So client is able to reset/init other values
                         mapSettingsToViewModel_function(newSettingsData);
-                    });
+                    } catch (error) {
+                        // TODO: error handling
+                    }
                 });
 
                 resetButton.show();
