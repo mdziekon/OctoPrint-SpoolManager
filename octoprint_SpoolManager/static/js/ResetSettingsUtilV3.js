@@ -74,6 +74,12 @@ function ResetSettingsUtilV3(pluginSettings) {
                 // add/update click action
                 resetButton.unbind("click");
                 resetButton.click(async () => {
+                    const hasConfirmed = confirm(`Do you really want to reset settings of plugin "${PLUGIN_ID_string}"?`);
+
+                    if (!hasConfirmed) {
+                        return;
+                    }
+
                     try {
                         const newSettingsData = await $.ajax({
                             url: `${API_BASEURL}plugin/${PLUGIN_ID_string}?action=resetSettings`,
