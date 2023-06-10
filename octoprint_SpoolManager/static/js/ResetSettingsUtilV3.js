@@ -5,6 +5,23 @@ function ResetSettingsUtilV3(pluginSettings) {
     const RESET_BUTTON_HTML = `<button id="${RESET_BUTTON_ID}" class="btn btn-warning" style="margin-right:3%">Reset Settings</button>`;
     const RESET_BUTTON_SELECTOR = `#${RESET_BUTTON_ID}`;
 
+    const resetPluginSettings = (pluginSettingsStorage, newSettings) => {
+        Object.entries(newSettings).forEach(([ key, value ]) => {
+            if (
+                typeof value !== "object" ||
+                !value
+            ) {
+                pluginSettingsStorage[key](value);
+
+                return;
+            }
+
+            Object.entries(value).forEach(([ nestedKey, nestedValue ]) => {
+                pluginSettingsStorage[key][nestedKey](nestedValue);
+            });
+        });
+    };
+
     this.assignResetSettingsFeature = function (PLUGIN_ID_string, mapSettingsToViewModel_function) {
         /**
          * TODO: PrintJobHistory uses the same name ("resetSettingsButtonFunction")
@@ -69,20 +86,7 @@ function ResetSettingsUtilV3(pluginSettings) {
                         });
 
                         // Reset all values in in-memory storage
-                        Object.entries(newSettingsData).forEach(([ key, value ]) => {
-                            if (
-                                typeof value !== "object" ||
-                                !value
-                            ) {
-                                pluginSettingsFromPlugin[key](value);
-
-                                return;
-                            }
-
-                            Object.entries(value).forEach(([ nestedKey, nestedValue ]) => {
-                                pluginSettingsFromPlugin[key][nestedKey](nestedValue);
-                            });
-                        });
+                        resetPluginSettings(pluginSettingsFromPlugin, newSettingsData);
 
                         // delegate to the client. So client is able to reset/init other values
                         mapSettingsToViewModel_function(newSettingsData);
