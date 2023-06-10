@@ -58,29 +58,32 @@ function ResetSettingsUtilV3(pluginSettings) {
                     $.ajax({
                         url: `${API_BASEURL}plugin/${PLUGIN_ID_string}?action=resetSettings`,
                         type: "GET",
-                    }).done(function(data) {
+                    }).done(function(newSettingsData) {
                         new PNotify({
                             title: "Default settings saved!",
                             text: "The plugin settings have now been reset to the default values.<br>Please do a Browser reload (Strg + F5) to update all settings in the UI.",
                             type: "info",
                             hide: true,
                         });
-                        // reset all values
-                        for (let propName in data) {
-                            const propValue = data[propName];
-                            // nested object, like databaseSettings? only a depth of 1
-                            if (typeof propValue == "object") {
-                                for (let subPropName in propValue) {
-                                    subPropValue = propValue[subPropName];
-                                    pluginSettingsFromPlugin[propName][subPropName](propValue);
-                                }
-                            } else {
-                                pluginSettingsFromPlugin[propName](propValue);
+
+                        // Reset all values in in-memory storage
+                        Object.entries(newSettingsData).forEach(([ key, value ]) => {
+                            if (
+                                typeof value !== "object" ||
+                                !value
+                            ) {
+                                pluginSettingsFromPlugin[key](value);
+
+                                return;
                             }
-                        }
+
+                            Object.entries(value).forEach(([ nestedKey, nestedValue ]) => {
+                                pluginSettingsFromPlugin[key][nestedKey](nestedValue);
+                            });
+                        });
 
                         // delegate to the client. So client is able to reset/init other values
-                        mapSettingsToViewModel_function(data);
+                        mapSettingsToViewModel_function(newSettingsData);
                     });
                 });
 
