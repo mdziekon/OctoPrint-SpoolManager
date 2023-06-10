@@ -45,7 +45,9 @@ function ResetSettingsUtilV3(pluginSettings) {
             $settingsDialog.on('hide', resetSettingsButtonFunction);
         }
 
-        const pluginSettingsLink = $("ul[id=settingsTabs] > li[id^=settings_plugin_"+PLUGIN_ID_string+"] > a[href^=\\#settings_plugin_"+PLUGIN_ID_string+"]:not([hooked="+PLUGIN_ID_string+"])");
+        const $settingsTabs = $("#settingsTabs");
+
+        const pluginSettingsLink = $settingsTabs.find(`a[href="#settings_plugin_${PLUGIN_ID_string}"]:not([hooked="${PLUGIN_ID_string}"])`);
         pluginSettingsLink.attr("hooked", PLUGIN_ID_string);
         pluginSettingsLink.click(function() {
             // call backend, is resetSettingsButtonEnabled
@@ -99,8 +101,8 @@ function ResetSettingsUtilV3(pluginSettings) {
             });
         });
 
-        // default behaviour -> hide reset button --> if not already assigned
-        const otherSettingsLink = $("ul[id=settingsTabs] > li[id^=settings_] > a[href^=\\#settings_]:not([hooked])");
+        // default behavior -> hide reset button --> if not already assigned
+        const otherSettingsLink = $settingsTabs.find(`a[href^="#settings_"]:not([hooked])`);
         if (otherSettingsLink.length) {
             otherSettingsLink.attr("hooked", "otherSettings");
             otherSettingsLink.click(resetSettingsButtonFunction);
