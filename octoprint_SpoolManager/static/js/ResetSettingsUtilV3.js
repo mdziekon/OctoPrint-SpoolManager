@@ -49,16 +49,16 @@ function ResetSettingsUtilV3(pluginSettings) {
 
         const pluginSettingsLink = $settingsTabs.find(`a[href="#settings_plugin_${PLUGIN_ID_string}"]:not([hooked="${PLUGIN_ID_string}"])`);
         pluginSettingsLink.attr("hooked", PLUGIN_ID_string);
-        pluginSettingsLink.click(function() {
-            // call backend, is resetSettingsButtonEnabled
-            // hide reset settings button
-            $.ajax({
-                url: `${API_BASEURL}plugin/${PLUGIN_ID_string}?action=isResetSettingsEnabled`,
-                type: "GET",
-            }).done(function(data) {
+        pluginSettingsLink.click(async () => {
+            try {
+                const pluginData = await $.ajax({
+                    url: `${API_BASEURL}plugin/${PLUGIN_ID_string}?action=isResetSettingsEnabled`,
+                    type: "GET",
+                });
+
                 let resetButton = $(RESET_BUTTON_SELECTOR);
 
-                if (data.enabled !== "true") {
+                if (pluginData.enabled !== "true") {
                     if (resetButton.length) {
                         resetButton.hide();
                     }
@@ -109,7 +109,9 @@ function ResetSettingsUtilV3(pluginSettings) {
                 });
 
                 resetButton.show();
-            });
+            } catch (error) {
+                console.error("ERROR: Plugin settings reset", "An unknown error occurred while performing a request", error);
+            }
         });
 
         // default behavior -> hide reset button --> if not already assigned
