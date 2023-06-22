@@ -152,14 +152,8 @@ https://github.com/bgrins/TinyColor
 * Date-Picker:
 ~~bootstrap-datapicker https://github.com/uxsolutions/bootstrap-datepicker~~
 datepicker https://github.com/fengyuanchen/datepicker
-
-* datetimepicker
- https://github.com/xdan/datetimepicker/tree/2.5.20
-https://www.jqueryscript.net/time-clock/Clean-jQuery-Date-Time-Picker-Plugin-datetimepicker.html
-
 * Select/Labels
 select2 https://select2.org/
-
 * WYSIWYG - Editor
 quill https://quilljs.com/
 
