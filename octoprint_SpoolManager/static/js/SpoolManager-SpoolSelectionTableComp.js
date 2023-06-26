@@ -15,6 +15,38 @@ function SpoolSelectionTableComp() {
         });
     }
 
+    const dateSortCallback = (extractDate, sortOrientation) => (left, right) => {
+        const leftDateValue = extractDate(left);
+        const rightDateValue = extractDate(right);
+
+        const leftValue = leftDateValue != null ? leftDateValue : "";
+        const rightValue = rightDateValue != null ? rightDateValue : "";
+
+        const sortResult = (() => {
+            if (leftValue === rightValue) {
+                return right.databaseId() - left.databaseId();
+            }
+
+            if (leftValue === "") {
+                return 1;
+            }
+            if (rightValue === "") {
+                return -1;
+            }
+
+            const momentLeft = moment(leftValue, "DD.MM.YYYY hh:mm");
+            const momentRight = moment(rightValue, "DD.MM.YYYY hh:mm");
+
+            return (
+                (momentLeft > momentRight)
+                    ? -1
+                    : 1
+            );
+        })();
+
+        return sortResult * sortOrientation;
+    };
+
     //////////////////////////////////////////////////////////////////// private functions
     self._viewModelFunction = function(params){
         let self = this;
@@ -180,8 +212,7 @@ function SpoolSelectionTableComp() {
         });
 
         //  - do sorting
-        self.sortSpoolArray = function(sortField, requestedSortOrder){
-            var sortResult = 0;
+        self.sortSpoolArray = function(sortField, requestedSortOrder) {
             var sorted = self.allSpools();
 
             if (requestedSortOrder){
@@ -210,61 +241,17 @@ function SpoolSelectionTableComp() {
                     return sortResult;
                 });
             } else if (sortField === 'lastUse') {
-                sorted.sort(function sortDesc(a, b) {
-                    var valueA = a.lastUse() != null ? a.lastUse() : "";
-                    var valueB = b.lastUse() != null ? b.lastUse() : "";
-                    if (valueA == valueB){
-                        sortResult = b.databaseId() - a.databaseId();
-                    } else {
-                        if (valueA == ""){
-                            sortResult = 1;
-                        } else {
-                            if (valueB == ""){
-                                sortResult = -1;
-                            } else {
-                                var momA = moment(valueA, "DD.MM.YYYY hh:mm");
-                                var momB = moment(valueB, "DD.MM.YYYY hh:mm");
+                const dateExtractor = (element) => {
+                    return element.lastUse();
+                };
 
-                                if (momA > momB){
-                                    sortResult = -1;
-                                } else {
-                                    sortResult = 1;
-                                }
-                            }
-                        }
-                    }
-                    // sortResult = momB - momA;
-                    sortResult = sortResult * sortOrientation;
-                    return sortResult;
-                });
+                sorted.sort(dateSortCallback(dateExtractor, sortOrientation));
             } else if (sortField === 'firstUse') {
-                sorted.sort(function sortDesc(a, b) {
-                    var valueA = a.firstUse() != null ? a.firstUse() : "";
-                    var valueB = b.firstUse() != null ? b.firstUse() : "";
-                    if (valueA == valueB){
-                        sortResult = b.databaseId() - a.databaseId();
-                    } else {
-                        if (valueA == ""){
-                            sortResult = 1;
-                        } else {
-                            if (valueB == ""){
-                                sortResult = -1;
-                            } else {
-                                var momA = moment(valueA, "DD.MM.YYYY hh:mm");
-                                var momB = moment(valueB, "DD.MM.YYYY hh:mm");
+                const dateExtractor = (element) => {
+                    return element.firstUse();
+                };
 
-                                if (momA > momB){
-                                    sortResult = -1;
-                                } else {
-                                    sortResult = 1;
-                                }
-                            }
-                        }
-                    }
-                    // sortResult = momB - momA;
-                    sortResult = sortResult * sortOrientation;
-                    return sortResult;
-                });
+                sorted.sort(dateSortCallback(dateExtractor, sortOrientation));
             } else if (sortField === 'remaining') {
                 sorted.sort(function sortDesc(a, b) {
                     var valueA = a.remainingWeight() != null ? a.remainingWeight() : 0;
