@@ -297,11 +297,17 @@ function SpoolSelectionTableComp() {
                 var allColorsSelected = selectionCount ==  allColorArray.length
                 return allColorsSelected == true ? "all" : self.selectedColorsForFilter().length;
             }
-            if ("material" == filterLabelName){
-                return self._evalFilterLabel(self.allMaterials(), self.selectedMaterialsForFilter());
+            if ("material" == filterLabelName) {
+                return buildFilterSelectionsCounter(
+                    self.allMaterials(),
+                    self.selectedMaterialsForFilter(),
+                );
             }
-            if ("vendor" == filterLabelName){
-                return self._evalFilterLabel(self.allVendors(), self.selectedVendorsForFilter());
+            if ("vendor" == filterLabelName) {
+                return buildFilterSelectionsCounter(
+                    self.allVendors(),
+                    self.selectedVendorsForFilter(),
+                );
             }
 
             return "not defined:" + filterLabelName;
@@ -417,22 +423,6 @@ function SpoolSelectionTableComp() {
             } else {
                 self.totalShown(totalShownCount);
             }
-    }
-
-        /**
-         * return the selection count of a specific catalog-array
-         */
-        self._evalFilterLabel = function(allArray, selectionArray){
-            // check if all selected
-            var selectionCount = 0
-            for (let item of allArray) {
-                if (selectionArray.indexOf(item) != -1){
-                    selectionCount++;
-                }
-            }
-            var allSelected = selectionCount ==  allArray.length
-            return allSelected == true ? "all" : selectionArray.length;
-        };
-
+        }
     }
 }
