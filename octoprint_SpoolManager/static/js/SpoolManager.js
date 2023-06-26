@@ -523,9 +523,7 @@ $(function() {
         self.allSpoolsForSidebar = ko.observableArray([]);
         self.selectedSpoolsForSidebar = ko.observableArray([]);
         // see FILTER/SORTING https://embed.plnkr.co/plunk/Kj5JMv
-        self.filterSelectionQuery = ko.observable();
-
-        // self.sidebarFilterSorter = new SpoolsFilterSorter("sidebarSpoolSelection", self.allSpoolsForSidebar);
+        // self.filterSelectionQuery = ko.observable();
 
         self.sidebarSelectSpoolModalToolIndex = ko.observable(null);  // index of the current tool we want to select for
         self.sidebarSelectSpoolModalSpoolItem = ko.observable(null); // current spoolitem
@@ -625,9 +623,6 @@ $(function() {
                 loadSpoolSelectorData(),
                 loadCurrentSelectedSpoolsData(),
             ]);
-
-            // Pre sorting in Selection-Dialog
-            // self.sidebarFilterSorter.sortSpoolArray("displayName", "ascending");
         }
 
         _buildRemainingWeightText = function(spoolItem) {
@@ -774,13 +769,10 @@ $(function() {
             self.sidebarSelectSpoolModalSpoolItem(spoolItem);
             self.sidebarSelectSpoolModalToolIndex(toolIndex);
 
-            // self.sidebarFilterSorter.initFilterSorter();
-
             self.selectionSpoolDialog.modal({
                 minHeight: 300,
                 show: true
             });
-            $("#filterSelectionQueryTextfield").focus();
         }
 
         //////////////////////////////////////////////////////////////////////////////////////////////////// TABLE / TAB
