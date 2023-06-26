@@ -279,23 +279,17 @@ function SpoolSelectionTableComp() {
                 self.currentSortField(sortField);
         }
 
-        self.buildFilterLabel = function(filterLabelName){
-            // spoolItemTableHelper.selectedColorsForFilter().length == spoolItemTableHelper.allColors().length ? 'all' : spoolItemTableHelper.selectedColorsForFilter().length
-            // to detecting all, we can't use the length, because if just the color is changed then length is still true
-            // so we need to compare each value
-            if ("color" == filterLabelName){
-                var selectionArray = self.selectedColorsForFilter(); // array of colorIds [#ffa500;orange, #ffffff;white]
-                var allColorArray = self.allColors(); // array of object with 'colorId=#ffa500;orange','color=#ffa500','colorName="orange"'
-                // check if all colors selected
-                var selectionCount = 0
-                for (let colorItem of allColorArray) {
-                    var colorId = colorItem.colorId;
-                    if (selectionArray.indexOf(colorId) != -1){
-                        selectionCount++;
-                    }
-                }
-                var allColorsSelected = selectionCount ==  allColorArray.length
-                return allColorsSelected == true ? "all" : self.selectedColorsForFilter().length;
+        self.buildFilterLabel = function(filterLabelName) {
+            /**
+             * Check if all existing colors in the catalog are in the selected list.
+             * This way we prevent positives eg. when selected list contains something that no longer exist,
+             * but the length of both lists are still the same (eg. because of a new color).
+             */
+            if ("color" == filterLabelName) {
+                return buildFilterSelectionsCounter(
+                    self.allColors().map((existingColor) => existingColor.colorId),
+                    self.selectedColorsForFilter(),
+                );
             }
             if ("material" == filterLabelName) {
                 return buildFilterSelectionsCounter(
@@ -310,7 +304,7 @@ function SpoolSelectionTableComp() {
                 );
             }
 
-            return "not defined:" + filterLabelName;
+            return "unknown:" + filterLabelName;
         }
 
         self.doFilterSelectAll = function(data, catalogName){
