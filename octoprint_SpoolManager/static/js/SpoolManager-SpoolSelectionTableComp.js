@@ -2,6 +2,7 @@
 
 
 function SpoolSelectionTableComp() {
+    const PARSE_FORMAT_DATETIME = SPOOLMANAGER_CONSTANTS.DATES.PARSE_FORMATS.DATETIME;
 
     let self = this;
     //////////////////////////////////////////////////////////////////// browser storage
@@ -34,8 +35,8 @@ function SpoolSelectionTableComp() {
                 return -1;
             }
 
-            const momentLeft = moment(leftValue, "DD.MM.YYYY hh:mm");
-            const momentRight = moment(rightValue, "DD.MM.YYYY hh:mm");
+            const momentLeft = moment(leftValue, PARSE_FORMAT_DATETIME);
+            const momentRight = moment(rightValue, PARSE_FORMAT_DATETIME);
 
             return (
                 (momentLeft > momentRight)
