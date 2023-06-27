@@ -335,72 +335,100 @@ function SpoolSelectionTableComp() {
         }
 
         // execute the filter
-        self._executeFilter = function(){
-            var filterQuery = self.filterSelectionQuery == null || self.filterSelectionQuery() == null ? "" : self.filterSelectionQuery() ;
-            filterQuery = filterQuery.toLowerCase();
-            var totalShownCount = -1;
-            //console.error(self.allSpoolsKOArray().length)
+        self._executeFilter = function() {
+            let totalShownCount = -1;
+            const filterQuery = (self.filterSelectionQuery?.() || "").toLowerCase();
+
             for (spool of self.allSpools()) {
+                const spoolProperties = [
+                    spool.material(),
+                    spool.vendor(),
+                    spool.displayName(),
+                    spool.colorName(),
+                ].join(" ");
 
-                var spoolProperties = spool.material() + " " +
-                                      spool.vendor() + " " +
-                                      spool.displayName() + " " +
-                                      spool.colorName();
-
-                if (spoolProperties.toLowerCase().indexOf(filterQuery) > -1) {
-                    spool.isFilteredForSelection(false);
-                } else {
-                    spool.isFilteredForSelection(true);
-                }
-                if (self.hideEmptySpools() == true){
-                    var isEmpty = spool.remainingWeight == null || spool.remainingWeight() <= 0 ? true : false;
-                    if (isEmpty){
-                        spool.isFilteredForSelection(true);
+                const isMatchingFilters = (() => {
+                    if (!spoolProperties.toLowerCase().includes(filterQuery)) {
+                        return false;
                     }
-                }
-                if (self.hideInActiveSpools() == true && spool.isActive() == false){
-                    spool.isFilteredForSelection(true);
-                }
 
-                // Filter against catalogs,  if not already filtered
-                if (spool.isFilteredForSelection() == false){
-                    // Material
-                    if (self.allMaterials().length != self.selectedMaterialsForFilter().length){
-                        var spoolMaterial = spool.material != null && spool.material() != null ? spool.material() : "";
-                        if (self.selectedMaterialsForFilter().includes(spoolMaterial) == false){
-                            spool.isFilteredForSelection(true);
+                    if (self.hideEmptySpools() == true) {
+                        const isSpoolEmpty = (
+                            spool.remainingWeight == null ||
+                            spool.remainingWeight() <= 0
+                        );
+
+                        if (isSpoolEmpty) {
+                            return false;
                         }
                     }
-                    if (spool.isFilteredForSelection() == false){
-                        // Vendor
-                        if (self.allVendors().length != self.selectedVendorsForFilter().length){
-                            var spoolVendor = spool.vendor != null && spool.vendor() != null ? spool.vendor() : "";
-                            if (self.selectedVendorsForFilter().includes(spoolVendor) == false){
-                                spool.isFilteredForSelection(true);
-                            }
-                        }
-                        if (spool.isFilteredForSelection() == false){
-                            // Color
-                            if (self.allColors().length != self.selectedColorsForFilter().length){
-                                var spoolColorCode = spool.color != null && spool.color() != null ? spool.color() : "";
-                                var spoolColorName = spool.colorName != null && spool.colorName() != null ? spool.colorName() : "";
-                                var colorId = spoolColorCode + ";" + spoolColorName;
-                                if (self.selectedColorsForFilter().includes(colorId) == false){
-                                    spool.isFilteredForSelection(true);
-                                }
-                            }
+
+                    if (
+                        self.hideInActiveSpools() == true &&
+                        spool.isActive() == false
+                    ) {
+                        return false;
+                    }
+
+                    if (self.allMaterials().length !== self.selectedMaterialsForFilter().length) {
+                        const spoolMaterial = (
+                            spool.material != null &&
+                            spool.material() != null
+                        )
+                            ? spool.material()
+                            : "";
+
+                        if (!self.selectedMaterialsForFilter().includes(spoolMaterial)) {
+                            return false;
                         }
                     }
-                }
-                if (spool.isFilteredForSelection() == false){
-                    if (totalShownCount == -1){
+
+                    if (self.allVendors().length !== self.selectedVendorsForFilter().length) {
+                        const spoolVendor = (
+                            spool.vendor != null &&
+                            spool.vendor() != null
+                        )
+                            ? spool.vendor()
+                            : "";
+
+                        if (!self.selectedVendorsForFilter().includes(spoolVendor)) {
+                            return false;
+                        }
+                    }
+
+                    if (self.allColors().length !== self.selectedColorsForFilter().length) {
+                        const spoolColorCode = (
+                            spool.color != null &&
+                            spool.color() != null
+                        )
+                            ? spool.color()
+                            : "";
+                        const spoolColorName = (
+                            spool.colorName != null &&
+                            spool.colorName() != null
+                        )
+                            ? spool.colorName()
+                            : "";
+                        const colorId = `${spoolColorCode};${spoolColorName}`;
+                        if (!self.selectedColorsForFilter().includes(colorId)) {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                })();
+
+                spool.isFilteredForSelection(!isMatchingFilters);
+
+                if (!spool.isFilteredForSelection()) {
+                    if (totalShownCount == -1) {
                         totalShownCount = 0;
                     }
                     totalShownCount += 1;
                 }
-            // });
             }
-            if (totalShownCount == -1){
+
+            if (totalShownCount == -1) {
                 self.totalShown(self.allSpools().length);
             } else {
                 self.totalShown(totalShownCount);
