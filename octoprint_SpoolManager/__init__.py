@@ -856,7 +856,6 @@ class SpoolmanagerPlugin(
 				"js/SpoolManager-SpoolItem.js",
 				"js/SpoolManager.js",
 				"js/SpoolManager-APIClient.js",
-				"js/SpoolManager-FilterSorter.js",
 				"js/SpoolManager-SpoolSelectionTableComp.js",
 				"js/SpoolManager-EditSpoolDialog.js",
 				"js/SpoolManager-ImportDialog.js",

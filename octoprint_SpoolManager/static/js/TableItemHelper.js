@@ -177,18 +177,6 @@ function TableItemHelper(loadItemsFunction, defaultPageSize, defaultSortColumn, 
         }
     });
 
-    self._evalFilterLabel = function(allArray, selectionArray) {
-        const areAllExistingSelected = allArray.every((element) => {
-            return selectionArray.includes(element);
-        });
-
-        return (
-            areAllExistingSelected
-                ? "all"
-                : selectionArray.length
-        );
-    };
-
     // ################################################################################################ public functions
     self.reloadItems = function(){
         self._loadItems();
@@ -286,19 +274,19 @@ function TableItemHelper(loadItemsFunction, defaultPageSize, defaultSortColumn, 
          * but the length of both lists are still the same (eg. because of a new color).
          */
         if ("color" == filterLabelName) {
-            return self._evalFilterLabel(
+            return buildFilterSelectionsCounter(
                 self.allColors().map((existingColor) => existingColor.colorId),
                 self.selectedColorsForFilter(),
             );
         }
         if ("material" == filterLabelName) {
-            return self._evalFilterLabel(
+            return buildFilterSelectionsCounter(
                 self.allMaterials(),
                 self.selectedMaterialsForFilter(),
             );
         }
         if ("vendor" == filterLabelName) {
-            return self._evalFilterLabel(
+            return buildFilterSelectionsCounter(
                 self.allVendors(),
                 self.selectedVendorsForFilter(),
             );

@@ -2,6 +2,7 @@
 
 
 function SpoolSelectionTableComp() {
+    const PARSE_FORMAT_DATETIME = SPOOLMANAGER_CONSTANTS.DATES.PARSE_FORMATS.DATETIME;
 
     let self = this;
     //////////////////////////////////////////////////////////////////// browser storage
@@ -14,6 +15,38 @@ function SpoolSelectionTableComp() {
             template: spoolSelectionTableCompHTMLTemplate
         });
     }
+
+    const dateSortCallback = (extractDate, sortOrientation) => (left, right) => {
+        const leftDateValue = extractDate(left);
+        const rightDateValue = extractDate(right);
+
+        const leftValue = leftDateValue != null ? leftDateValue : "";
+        const rightValue = rightDateValue != null ? rightDateValue : "";
+
+        const sortResult = (() => {
+            if (leftValue === rightValue) {
+                return right.databaseId() - left.databaseId();
+            }
+
+            if (leftValue === "") {
+                return 1;
+            }
+            if (rightValue === "") {
+                return -1;
+            }
+
+            const momentLeft = moment(leftValue, PARSE_FORMAT_DATETIME);
+            const momentRight = moment(rightValue, PARSE_FORMAT_DATETIME);
+
+            return (
+                (momentLeft > momentRight)
+                    ? -1
+                    : 1
+            );
+        })();
+
+        return sortResult * sortOrientation;
+    };
 
     //////////////////////////////////////////////////////////////////// private functions
     self._viewModelFunction = function(params){
@@ -180,131 +213,86 @@ function SpoolSelectionTableComp() {
         });
 
         //  - do sorting
-        self.sortSpoolArray = function(sortField, requestedSortOrder){
-                var sortResult = 0;
-                var sorted = self.allSpools();
+        self.sortSpoolArray = function(sortField, requestedSortOrder) {
+            var sorted = self.allSpools();
 
-                if (requestedSortOrder){
-                    self.currentSortOder(requestedSortOrder == "descending" ? "ascending" : "descending");
-                }
+            if (requestedSortOrder){
+                self.currentSortOder(requestedSortOrder == "descending" ? "ascending" : "descending");
+            }
 
-                var sortOrientation = 1;
-                if (self.currentSortOder() == "descending"){
-                    self.currentSortOder("ascending");
-                    sortOrientation = -1;
-                } else {
-                    self.currentSortOder("descending");
-                }
+            var sortOrientation = 1;
+            if (self.currentSortOder() == "descending"){
+                self.currentSortOder("ascending");
+                sortOrientation = -1;
+            } else {
+                self.currentSortOder("descending");
+            }
 
-                if (sortField === "displayName") {
-                    sorted.sort(function (a, b) {
-                        var sortResult = b.displayName().toLowerCase().localeCompare(a.displayName().toLowerCase()) * sortOrientation;
-                        return sortResult;
-                    });
-                } else if (sortField === 'material') {
-                    sorted.sort(function sortDesc(a, b) {
-                        var valueA = a.material() != null ? a.material().toLowerCase() : "";
-                        var valueB = b.material() != null ? b.material().toLowerCase() : "";
-                        var sortResult = valueB.localeCompare(valueA) * sortOrientation;
+            if (sortField === "displayName") {
+                sorted.sort(function (a, b) {
+                    var sortResult = b.displayName().toLowerCase().localeCompare(a.displayName().toLowerCase()) * sortOrientation;
+                    return sortResult;
+                });
+            } else if (sortField === 'material') {
+                sorted.sort(function sortDesc(a, b) {
+                    var valueA = a.material() != null ? a.material().toLowerCase() : "";
+                    var valueB = b.material() != null ? b.material().toLowerCase() : "";
+                    var sortResult = valueB.localeCompare(valueA) * sortOrientation;
 
-                        return sortResult;
-                    });
-                } else if (sortField === 'lastUse') {
-                    sorted.sort(function sortDesc(a, b) {
-                        var valueA = a.lastUse() != null ? a.lastUse() : "";
-                        var valueB = b.lastUse() != null ? b.lastUse() : "";
-                        if (valueA == valueB){
-                            sortResult = b.databaseId() - a.databaseId();
-                        } else {
-                            if (valueA == ""){
-                                sortResult = 1;
-                            } else {
-                                if (valueB == ""){
-                                    sortResult = -1;
-                                } else {
-                                    var momA = moment(valueA, "DD.MM.YYYY hh:mm");
-                                    var momB = moment(valueB, "DD.MM.YYYY hh:mm");
+                    return sortResult;
+                });
+            } else if (sortField === 'lastUse') {
+                const dateExtractor = (element) => {
+                    return element.lastUse();
+                };
 
-                                    if (momA > momB){
-                                        sortResult = -1;
-                                    } else {
-                                        sortResult = 1;
-                                    }
-                                }
-                            }
-                        }
-                        // sortResult = momB - momA;
-                        sortResult = sortResult * sortOrientation;
-                        return sortResult;
-                    });
-                } else if (sortField === 'firstUse') {
-                    sorted.sort(function sortDesc(a, b) {
-                        var valueA = a.firstUse() != null ? a.firstUse() : "";
-                        var valueB = b.firstUse() != null ? b.firstUse() : "";
-                        if (valueA == valueB){
-                            sortResult = b.databaseId() - a.databaseId();
-                        } else {
-                            if (valueA == ""){
-                                sortResult = 1;
-                            } else {
-                                if (valueB == ""){
-                                    sortResult = -1;
-                                } else {
-                                    var momA = moment(valueA, "DD.MM.YYYY hh:mm");
-                                    var momB = moment(valueB, "DD.MM.YYYY hh:mm");
+                sorted.sort(dateSortCallback(dateExtractor, sortOrientation));
+            } else if (sortField === 'firstUse') {
+                const dateExtractor = (element) => {
+                    return element.firstUse();
+                };
 
-                                    if (momA > momB){
-                                        sortResult = -1;
-                                    } else {
-                                        sortResult = 1;
-                                    }
-                                }
-                            }
-                        }
-                        // sortResult = momB - momA;
-                        sortResult = sortResult * sortOrientation;
-                        return sortResult;
-                    });
-                } else if (sortField === 'remaining') {
-                    sorted.sort(function sortDesc(a, b) {
-                        var valueA = a.remainingWeight() != null ? a.remainingWeight() : 0;
-                        var valueB = b.remainingWeight() != null ? b.remainingWeight() : 0;
-                        var sortResult = valueB - valueA;
+                sorted.sort(dateSortCallback(dateExtractor, sortOrientation));
+            } else if (sortField === 'remaining') {
+                sorted.sort(function sortDesc(a, b) {
+                    var valueA = a.remainingWeight() != null ? a.remainingWeight() : 0;
+                    var valueB = b.remainingWeight() != null ? b.remainingWeight() : 0;
+                    var sortResult = valueB - valueA;
 
-                        sortResult = sortResult * sortOrientation;
-                        return sortResult;
-                    });
-                }
-                self.allSpools(sorted);
-                self.currentSortField(sortField);
+                    sortResult = sortResult * sortOrientation;
+                    return sortResult;
+                });
+            }
+            self.allSpools(sorted);
+            self.currentSortField(sortField);
         }
 
-        self.buildFilterLabel = function(filterLabelName){
-            // spoolItemTableHelper.selectedColorsForFilter().length == spoolItemTableHelper.allColors().length ? 'all' : spoolItemTableHelper.selectedColorsForFilter().length
-            // to detecting all, we can't use the length, because if just the color is changed then length is still true
-            // so we need to compare each value
-            if ("color" == filterLabelName){
-                var selectionArray = self.selectedColorsForFilter(); // array of colorIds [#ffa500;orange, #ffffff;white]
-                var allColorArray = self.allColors(); // array of object with 'colorId=#ffa500;orange','color=#ffa500','colorName="orange"'
-                // check if all colors selected
-                var selectionCount = 0
-                for (let colorItem of allColorArray) {
-                    var colorId = colorItem.colorId;
-                    if (selectionArray.indexOf(colorId) != -1){
-                        selectionCount++;
-                    }
-                }
-                var allColorsSelected = selectionCount ==  allColorArray.length
-                return allColorsSelected == true ? "all" : self.selectedColorsForFilter().length;
+        self.buildFilterLabel = function(filterLabelName) {
+            /**
+             * Check if all existing colors in the catalog are in the selected list.
+             * This way we prevent positives eg. when selected list contains something that no longer exist,
+             * but the length of both lists are still the same (eg. because of a new color).
+             */
+            if ("color" == filterLabelName) {
+                return buildFilterSelectionsCounter(
+                    self.allColors().map((existingColor) => existingColor.colorId),
+                    self.selectedColorsForFilter(),
+                );
             }
-            if ("material" == filterLabelName){
-                return self._evalFilterLabel(self.allMaterials(), self.selectedMaterialsForFilter());
+            if ("material" == filterLabelName) {
+                return buildFilterSelectionsCounter(
+                    self.allMaterials(),
+                    self.selectedMaterialsForFilter(),
+                );
             }
-            if ("vendor" == filterLabelName){
-                return self._evalFilterLabel(self.allVendors(), self.selectedVendorsForFilter());
+            if ("vendor" == filterLabelName) {
+                return buildFilterSelectionsCounter(
+                    self.allVendors(),
+                    self.selectedVendorsForFilter(),
+                );
             }
 
-            return "not defined:" + filterLabelName;
+            return "unknown:" + filterLabelName;
         }
 
         self.doFilterSelectAll = function(data, catalogName){
@@ -347,92 +335,97 @@ function SpoolSelectionTableComp() {
         }
 
         // execute the filter
-        self._executeFilter = function(){
-            var filterQuery = self.filterSelectionQuery == null || self.filterSelectionQuery() == null ? "" : self.filterSelectionQuery() ;
-            filterQuery = filterQuery.toLowerCase();
-            var totalShownCount = -1;
-            //console.error(self.allSpoolsKOArray().length)
+        self._executeFilter = function() {
+            let totalShownCount = 0;
+            const filterQuery = (self.filterSelectionQuery?.() || "").toLowerCase();
+
             for (spool of self.allSpools()) {
+                const spoolProperties = [
+                    spool.material(),
+                    spool.vendor(),
+                    spool.displayName(),
+                    spool.colorName(),
+                ].join(" ");
 
-                var spoolProperties = spool.material() + " " +
-                                      spool.vendor() + " " +
-                                      spool.displayName() + " " +
-                                      spool.colorName();
-
-                if (spoolProperties.toLowerCase().indexOf(filterQuery) > -1) {
-                    spool.isFilteredForSelection(false);
-                } else {
-                    spool.isFilteredForSelection(true);
-                }
-                if (self.hideEmptySpools() == true){
-                    var isEmpty = spool.remainingWeight == null || spool.remainingWeight() <= 0 ? true : false;
-                    if (isEmpty){
-                        spool.isFilteredForSelection(true);
+                const isMatchingFilters = (() => {
+                    if (!spoolProperties.toLowerCase().includes(filterQuery)) {
+                        return false;
                     }
-                }
-                if (self.hideInActiveSpools() == true && spool.isActive() == false){
-                    spool.isFilteredForSelection(true);
-                }
 
-                // Filter against catalogs,  if not already filtered
-                if (spool.isFilteredForSelection() == false){
-                    // Material
-                    if (self.allMaterials().length != self.selectedMaterialsForFilter().length){
-                        var spoolMaterial = spool.material != null && spool.material() != null ? spool.material() : "";
-                        if (self.selectedMaterialsForFilter().includes(spoolMaterial) == false){
-                            spool.isFilteredForSelection(true);
+                    if (self.hideEmptySpools() == true) {
+                        const isSpoolEmpty = (
+                            spool.remainingWeight == null ||
+                            spool.remainingWeight() <= 0
+                        );
+
+                        if (isSpoolEmpty) {
+                            return false;
                         }
                     }
-                    if (spool.isFilteredForSelection() == false){
-                        // Vendor
-                        if (self.allVendors().length != self.selectedVendorsForFilter().length){
-                            var spoolVendor = spool.vendor != null && spool.vendor() != null ? spool.vendor() : "";
-                            if (self.selectedVendorsForFilter().includes(spoolVendor) == false){
-                                spool.isFilteredForSelection(true);
-                            }
-                        }
-                        if (spool.isFilteredForSelection() == false){
-                            // Color
-                            if (self.allColors().length != self.selectedColorsForFilter().length){
-                                var spoolColorCode = spool.color != null && spool.color() != null ? spool.color() : "";
-                                var spoolColorName = spool.colorName != null && spool.colorName() != null ? spool.colorName() : "";
-                                var colorId = spoolColorCode + ";" + spoolColorName;
-                                if (self.selectedColorsForFilter().includes(colorId) == false){
-                                    spool.isFilteredForSelection(true);
-                                }
-                            }
+
+                    if (
+                        self.hideInActiveSpools() == true &&
+                        spool.isActive() == false
+                    ) {
+                        return false;
+                    }
+
+                    if (self.allMaterials().length !== self.selectedMaterialsForFilter().length) {
+                        const spoolMaterial = (
+                            spool.material != null &&
+                            spool.material() != null
+                        )
+                            ? spool.material()
+                            : "";
+
+                        if (!self.selectedMaterialsForFilter().includes(spoolMaterial)) {
+                            return false;
                         }
                     }
-                }
-                if (spool.isFilteredForSelection() == false){
-                    if (totalShownCount == -1){
-                        totalShownCount = 0;
+
+                    if (self.allVendors().length !== self.selectedVendorsForFilter().length) {
+                        const spoolVendor = (
+                            spool.vendor != null &&
+                            spool.vendor() != null
+                        )
+                            ? spool.vendor()
+                            : "";
+
+                        if (!self.selectedVendorsForFilter().includes(spoolVendor)) {
+                            return false;
+                        }
                     }
+
+                    if (self.allColors().length !== self.selectedColorsForFilter().length) {
+                        const spoolColorCode = (
+                            spool.color != null &&
+                            spool.color() != null
+                        )
+                            ? spool.color()
+                            : "";
+                        const spoolColorName = (
+                            spool.colorName != null &&
+                            spool.colorName() != null
+                        )
+                            ? spool.colorName()
+                            : "";
+                        const colorId = `${spoolColorCode};${spoolColorName}`;
+                        if (!self.selectedColorsForFilter().includes(colorId)) {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                })();
+
+                spool.isFilteredForSelection(!isMatchingFilters);
+
+                if (!spool.isFilteredForSelection()) {
                     totalShownCount += 1;
                 }
-            // });
             }
-            if (totalShownCount == -1){
-                self.totalShown(self.allSpools().length);
-            } else {
-                self.totalShown(totalShownCount);
-            }
-    }
 
-        /**
-         * return the selection count of a specific catalog-array
-         */
-        self._evalFilterLabel = function(allArray, selectionArray){
-            // check if all selected
-            var selectionCount = 0
-            for (let item of allArray) {
-                if (selectionArray.indexOf(item) != -1){
-                    selectionCount++;
-                }
-            }
-            var allSelected = selectionCount ==  allArray.length
-            return allSelected == true ? "all" : selectionArray.length;
-        };
-
+            self.totalShown(totalShownCount);
+        }
     }
 }

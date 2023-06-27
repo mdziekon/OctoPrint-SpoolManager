@@ -23,5 +23,17 @@ const roundWithPrecision = (value, precision) => {
     return Math.round((value + Number.EPSILON) * increments) / increments;
 }
 
+const buildFilterSelectionsCounter = (options, selectedOptions) => {
+    const areAllExistingSelected = options.every((element) => {
+        return selectedOptions.includes(element);
+    });
+
+    return (
+        areAllExistingSelected
+            ? "all"
+            : selectedOptions.length
+    );
+};
+
 // Expose to jinja templates
 window.getDateFromAttribute = getDateFromAttribute;
