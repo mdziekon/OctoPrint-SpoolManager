@@ -336,7 +336,7 @@ function SpoolSelectionTableComp() {
 
         // execute the filter
         self._executeFilter = function() {
-            let totalShownCount = -1;
+            let totalShownCount = 0;
             const filterQuery = (self.filterSelectionQuery?.() || "").toLowerCase();
 
             for (spool of self.allSpools()) {
@@ -421,18 +421,11 @@ function SpoolSelectionTableComp() {
                 spool.isFilteredForSelection(!isMatchingFilters);
 
                 if (!spool.isFilteredForSelection()) {
-                    if (totalShownCount == -1) {
-                        totalShownCount = 0;
-                    }
                     totalShownCount += 1;
                 }
             }
 
-            if (totalShownCount == -1) {
-                self.totalShown(self.allSpools().length);
-            } else {
-                self.totalShown(totalShownCount);
-            }
+            self.totalShown(totalShownCount);
         }
     }
 }
