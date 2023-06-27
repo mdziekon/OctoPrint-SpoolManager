@@ -56,7 +56,7 @@ function SpoolManagerImportDialog() {
 
     /////////////////////////////////////////////////////////////////////////////////////////////////// UPDATE TEXT
     this.updateText = function(importData) {
-        if (importData.importStatus) {
+        if (!importData.importStatus) {
             return;
         }
 
