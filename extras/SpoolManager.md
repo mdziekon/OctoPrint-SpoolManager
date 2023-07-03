@@ -10,9 +10,9 @@ license: AGPLv3
 # TODO
 date: today's date in format YYYY-MM-DD, e.g. 2015-04-21
 
-homepage: https://github.com/you/OctoPrint-SpoolManager
-source: https://github.com/you/OctoPrint-SpoolManager
-archive: https://github.com/you/OctoPrint-SpoolManager/archive/master.zip
+homepage: https://github.com/mdziekon/OctoPrint-SpoolManager
+source: https://github.com/mdziekon/OctoPrint-SpoolManager
+archive: https://github.com/mdziekon/OctoPrint-SpoolManager/archive/master.zip
 
 # TODO
 # Set this to true if your plugin uses the dependency_links setup parameter to include

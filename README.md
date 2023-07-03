@@ -1,8 +1,8 @@
 # OctoPrint-SpoolManager
 
-[![Version](https://img.shields.io/badge/dynamic/json.svg?color=brightgreen&label=version&url=https://api.github.com/repos/OllisGit/OctoPrint-SpoolManager/releases&query=$[0].name)]()
-[![Released](https://img.shields.io/badge/dynamic/json.svg?color=brightgreen&label=released&url=https://api.github.com/repos/OllisGit/OctoPrint-SpoolManager/releases&query=$[0].published_at)]()
-![GitHub Releases (by Release)](https://img.shields.io/github/downloads/OllisGit/OctoPrint-SpoolManager/latest/total.svg)
+[![Version](https://img.shields.io/badge/dynamic/json.svg?color=brightgreen&label=version&url=https://api.github.com/repos/mdziekon/OctoPrint-SpoolManager/releases&query=$[0].name)]()
+[![Released](https://img.shields.io/badge/dynamic/json.svg?color=brightgreen&label=released&url=https://api.github.com/repos/mdziekon/OctoPrint-SpoolManager/releases&query=$[0].published_at)]()
+![GitHub Releases (by Release)](https://img.shields.io/github/downloads/mdziekon/OctoPrint-SpoolManager/latest/total.svg)
 
 The OctoPrint-Plugin manages all spool informations and stores it in a database.
 
@@ -63,7 +63,7 @@ If you like it, I would be thankful about a cup of coffee :)
 Install via the bundled [Plugin Manager](http://docs.octoprint.org/en/master/bundledplugins/pluginmanager.html)
 or manually using this URL:
 
-    https://github.com/OllisGit/OctoPrint-SpoolManager/releases/latest/download/master.zip
+    https://github.com/mdziekon/OctoPrint-SpoolManager/releases/latest/download/master.zip
 
 After installation, you can listen on three release channels (since 1.6.0).
 What does this mean: Each channel has its own release-version and each release has a different kind of functionality and stability.
@@ -83,7 +83,7 @@ At the meantime you need to uninstall and install the version you like from the 
 
 ## Versions
 
-see [Release-Overview](https://github.com/OllisGit/OctoPrint-SpoolManager/releases/)
+see [Release-Overview](https://github.com/mdziekon/OctoPrint-SpoolManager/releases/)
 
 
 ---

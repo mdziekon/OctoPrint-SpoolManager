@@ -59,7 +59,7 @@ jobs:
             - #xxx
 
             ## Counter
-            ![downloaded](https://img.shields.io/github/downloads/OllisGit/${{ steps.branch.outputs.repo_name }}/${{ steps.version.outputs.version }}/total)
+            ![downloaded](https://img.shields.io/github/downloads/mdziekon/${{ steps.branch.outputs.repo_name }}/${{ steps.version.outputs.version }}/total)
 
             ## Support my Efforts
             This plugin, as well as my [other plugins](https://github.com/OllisGit/) were developed in my spare time.
@@ -79,6 +79,6 @@ jobs:
           asset_content_type: application/gzip
 
       - name: download master.zip
-        run: curl -O -J -L -v https://github.com/OllisGit/${{ steps.branch.outputs.repo_name }}/releases/download/${{ steps.version.outputs.version }}/master.zip
+        run: curl -O -J -L -v https://github.com/mdziekon/${{ steps.branch.outputs.repo_name }}/releases/download/${{ steps.version.outputs.version }}/master.zip
 
       - run: echo "🍏 This job's status is ${{ job.status }}."
