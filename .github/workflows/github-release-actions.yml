@@ -1,27 +1,23 @@
-###
-### Simple script to build a zip file of the whole repository
-###
-## Major - Tasks:
-#  - ZIP
-#  - Build draft release
-#  - Attach Zip
-#  - Download Zip
-
-name: Build Plugin Release - Action
-on: [push]
+name: Create new plugin release
+on:
+  push
 jobs:
   Build-Release-ZIP-Action:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Check out repository code
         uses: actions/checkout@v2
 
-      - run: echo "Read current plugin version..."
-      - run: export PLUGIN_VERSION=$(cat setup.py | grep 'plugin_version = "*"' | cut -d '"' -f2)
-      - run: echo "Plugin Version  $PLUGIN_VERSION ${PLUGIN_VERSION}"
+      - name: Read current plugin version
+        run: |
+          export PLUGIN_VERSION=$(cat setup.py | grep 'plugin_version = "*"' | cut -d '"' -f2)
+          echo "Plugin Version  $PLUGIN_VERSION ${PLUGIN_VERSION}"
 
-      - run: echo "Build ZIP"
-      - run: zip -r master.zip * -i '\octoprint_*' 'translations' 'README.md' 'requirements.txt' 'setup.py'
+      - name: Build release .zip
+        run: zip -r master.zip * -i '\octoprint_*' 'translations' 'README.md' 'requirements.txt' 'setup.py'
+
       - name: List files in the repository
         run: |
           ls ${{ github.workspace }}
@@ -33,23 +29,22 @@ jobs:
       - name: Repository and Branch name
         id: branch
         run: |
-               export branch_name=${GITHUB_REF##*/}
-               echo "::set-output name=branch_name::$branch_name"
-               echo running on branch $branch_name
-               export repo_name=${GITHUB_REPOSITORY#*/}
-               echo "::set-output name=repo_name::$repo_name"
-
+          export branch_name=${GITHUB_REF##*/}
+          echo "::set-output name=branch_name::$branch_name"
+          echo running on branch $branch_name
+          export repo_name=${GITHUB_REPOSITORY#*/}
+          echo "::set-output name=repo_name::$repo_name"
 
       - name: release
-        uses: actions/create-release@latest
+        uses: softprops/action-gh-release@v1
         id: create_release
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           draft: true
-          commitish: ${{ steps.branch.outputs.branch_name }}
           prerelease: false
-          release_name: V${{ steps.version.outputs.version }}-draft
+          target_commitish: ${{ steps.branch.outputs.branch_name }}
+          name: V${{ steps.version.outputs.version }}-draft
           tag_name: ${{ steps.version.outputs.version }}-draft
           body: |
             ## [Features]
@@ -60,19 +55,11 @@ jobs:
 
             ## [Enhancement]
             - #xxx
-#          body_path: RELEASE_TEMPLATE.md
+          files: |
+            master.zip
 
-      - name: upload master.zip to release
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: master.zip
-          asset_name: master.zip
-          asset_content_type: application/gzip
-
-      - name: download master.zip
+      - name: Verify master.zip
         run: curl -O -J -L -v https://github.com/mdziekon/${{ steps.branch.outputs.repo_name }}/releases/download/${{ steps.version.outputs.version }}/master.zip
 
-      - run: echo "🍏 This job's status is ${{ job.status }}."
+      - name: Finish
+        run: echo "🍏 This job's status is ${{ job.status }}."
