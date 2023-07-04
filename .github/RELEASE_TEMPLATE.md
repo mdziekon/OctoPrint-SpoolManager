@@ -1,8 +1,8 @@
-## [Features]
+## Features
 - #xxx
 
-## [Bug fixes]
+## Enhancement
 - #xxx
 
-## [Enhancement]
+## Bug fixes
 - #xxx
