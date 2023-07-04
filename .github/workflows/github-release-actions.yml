@@ -8,7 +8,7 @@ jobs:
       contents: write
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Read current plugin version
         run: |
@@ -26,15 +26,6 @@ jobs:
         run: echo "::set-output name=version::$(cat setup.py | grep 'plugin_version = "*"' | cut -d '"' -f2)"
         id: version
 
-      - name: Repository and Branch name
-        id: branch
-        run: |
-          export branch_name=${GITHUB_REF##*/}
-          echo "::set-output name=branch_name::$branch_name"
-          echo running on branch $branch_name
-          export repo_name=${GITHUB_REPOSITORY#*/}
-          echo "::set-output name=repo_name::$repo_name"
-
       - name: release
         uses: softprops/action-gh-release@v1
         id: create_release
@@ -43,8 +34,8 @@ jobs:
         with:
           draft: true
           prerelease: false
-          target_commitish: ${{ steps.branch.outputs.branch_name }}
-          name: V${{ steps.version.outputs.version }}-draft
+          target_commitish: ${{ env.GITHUB_REF_NAME }}
+          name: v${{ steps.version.outputs.version }}-draft
           tag_name: ${{ steps.version.outputs.version }}-draft
           body: |
             ## [Features]
@@ -59,7 +50,7 @@ jobs:
             master.zip
 
       - name: Verify master.zip
-        run: curl -O -J -L -v https://github.com/mdziekon/${{ steps.branch.outputs.repo_name }}/releases/download/${{ steps.version.outputs.version }}/master.zip
+        run: curl -O -J -L -v https://github.com/${{ env.GITHUB_REPOSITORY }}/releases/download/${{ steps.version.outputs.version }}/master.zip
 
       - name: Finish
         run: echo "🍏 This job's status is ${{ job.status }}."
