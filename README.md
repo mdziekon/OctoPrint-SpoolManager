@@ -8,7 +8,7 @@ The OctoPrint-Plugin manages all spool information and stores it in a database.
 
 ## Fork notice
 
-Due to long period of inactivity, issues & pull requests neglect by @OllisGit on the original repository ([OllisGit/OctoPrint-SpoolManager](https://github.com/OllisGit/OctoPrint-SpoolManager)), I, @mdziekon, have decided to fork the repo & continue working on the plugin, mostly due to noticed inconveniences I could fix to improve my own user experience.
+Due to long period of inactivity, issues & pull requests neglect by @OllisGit on the original repository ([OllisGit/OctoPrint-SpoolManager](https://github.com/OllisGit/OctoPrint-SpoolManager), see eg. [issue 333](https://github.com/OllisGit/OctoPrint-SpoolManager/issues/333)), I, @mdziekon, have decided to fork the repo & continue working on the plugin, mostly due to noticed inconveniences I could fix to improve my own user experience.
 
 Right now, this fork has not been registered officially at [plugins.octoprint.org](https://plugins.octoprint.org/), and I have not requested any take-over action, however this might change in the future if the community decides this would be a sensible way to go forward.
 
