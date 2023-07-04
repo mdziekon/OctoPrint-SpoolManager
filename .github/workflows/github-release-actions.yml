@@ -37,15 +37,7 @@ jobs:
           target_commitish: ${{ env.GITHUB_REF_NAME }}
           name: v${{ steps.version.outputs.version }}-draft
           tag_name: ${{ steps.version.outputs.version }}-draft
-          body: |
-            ## [Features]
-            - #xxx
-
-            ## [Bug fixes]
-            - #xxx
-
-            ## [Enhancement]
-            - #xxx
+          body_path: ${{ github.workspace }}/.github/RELEASE_TEMPLATE.md
           files: |
             master.zip
 
