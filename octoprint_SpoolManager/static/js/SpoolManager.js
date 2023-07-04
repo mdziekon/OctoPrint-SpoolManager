@@ -1,7 +1,7 @@
 /*
  * View model for OctoPrint-SpoolManager
  *
- * Author: OllisGit
+ * Author: OllisGit, mdziekon
  * License: AGPLv3
  */
 // from setup.py plugin_identifier

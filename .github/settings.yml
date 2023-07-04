@@ -23,19 +23,19 @@ repository:
 #  has_downloads: true
 
   # Updates the default branch for this repository.
-#  default_branch: master
+  default_branch: master
 
   # Either `true` to allow squash-merging pull requests, or `false` to prevent
   # squash-merging.
-#  allow_squash_merge: true
+  allow_squash_merge: true
 
   # Either `true` to allow merging pull requests with a merge commit, or `false`
   # to prevent merging pull requests with merge commits.
-#  allow_merge_commit: true
+  allow_merge_commit: false
 
   # Either `true` to allow rebase-merging pull requests, or `false` to prevent
   # rebase-merging.
-#  allow_rebase_merge: true
+  allow_rebase_merge: false
 
 # Labels: define labels for Issues and Pull Requests
 labels:
@@ -48,25 +48,34 @@ labels:
   - name: "type: question"
     description: "Further information is requested"
     color: d876e3
-  - name: "status: analysing"
+  - name: "status: analysis"
     color: d3d847
-  - name: "status: inProgress"
-    description: "I am working on it"
+  - name: "status: in-progress"
+    description: "Someone is working on it"
     color: 5319e7
-  - name: "status: inNextRelease"
-    description: "Will be implemented/fixed in next release"
+  - name: "status: in-next-release"
+    description: "Will be implemented / fixed in next release"
     color: 4ae857
-  - name: "status: waitingForFeedback"
-    description: "Wating for Customers feedback"
+  - name: "status: awaiting-feedback"
+    description: "Awaiting further clarifications or additional information"
     color: bfdadc
-  - name: "status: waitingForTestFeedback"
+  - name: "status: awaiting-testing"
     color: 006b75
   - name: "status: wontfix"
-    description: "I don't wont to fix this"
+    description: "Issue or PR rejected by the maintainers"
     color: fbca04
-  - name: "status: markedForAutoClose"
+  - name: "status: marked-for-autoclose"
     description: "Issue will be closed automatically"
     color: ed6d75
+  - name: "status: closed-by-bot"
+    description: "Issue closed automatically"
+    color: ed6d75
+  - name: "area: tooling"
+    description: "Request related to project's tooling"
+    color: 842a9d
+  - name: "area: refactor"
+    description: "Request related to code refactoring"
+    color: ae611a
 
 # Collaborators: give specific users access to this repository.
 #collaborators:

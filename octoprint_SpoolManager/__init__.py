@@ -882,7 +882,7 @@ class SpoolmanagerPlugin(
 
 				# version check: github repository
 				type="github_release",
-				user="OllisGit",
+				user="mdziekon",
 				repo="OctoPrint-SpoolManager",
 				current=self._plugin_version,
 
@@ -906,7 +906,7 @@ class SpoolmanagerPlugin(
 				],
 
 				# update method: pip
-				pip="https://github.com/OllisGit/OctoPrint-SpoolManager/releases/download/{target_version}/master.zip"
+				pip="https://github.com/mdziekon/OctoPrint-SpoolManager/releases/download/{target_version}/master.zip"
 			)
 		)
 
