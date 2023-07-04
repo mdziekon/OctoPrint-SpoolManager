@@ -882,7 +882,7 @@ class SpoolmanagerPlugin(
 
 				# version check: github repository
 				type="github_release",
-				user="OllisGit",
+				user="mdziekon",
 				repo="OctoPrint-SpoolManager",
 				current=self._plugin_version,
 

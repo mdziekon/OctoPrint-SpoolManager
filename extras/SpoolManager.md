@@ -4,11 +4,10 @@ layout: plugin
 id: SpoolManager
 title: OctoPrint-SpoolManager
 description: Plugin to manage Spools
-author: OllisGit
+author: OllisGit, mdziekon
 license: AGPLv3
 
-# TODO
-date: today's date in format YYYY-MM-DD, e.g. 2015-04-21
+date: 2023-07-04
 
 homepage: https://github.com/mdziekon/OctoPrint-SpoolManager
 source: https://github.com/mdziekon/OctoPrint-SpoolManager
@@ -21,11 +20,8 @@ archive: https://github.com/mdziekon/OctoPrint-SpoolManager/archive/master.zip
 
 # TODO
 tags:
-- a list
-- of tags
-- that apply
-- to your plugin
-- (take a look at the existing plugins for what makes sense here)
+- filament
+- spool
 
 # TODO
 screenshots:

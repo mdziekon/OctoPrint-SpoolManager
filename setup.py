@@ -22,10 +22,10 @@ plugin_version = "1.7.0"
 plugin_description = """Plugin to manage Spools"""
 
 # The plugin's author. Can be overwritten within OctoPrint's internal data via __plugin_author__ in the plugin module
-plugin_author = "OllisGit"
+plugin_author = "OllisGit, mdziekon"
 
 # The plugin's author's mail address.
-plugin_author_email = "ollisgit@gmail.com"
+plugin_author_email = "ollisgit@gmail.com, michal.dziekonski+github@gmail.com"
 
 # The plugin's homepage URL. Can be overwritten within OctoPrint's internal data via __plugin_url__ in the plugin module
 plugin_url = "https://github.com/mdziekon/OctoPrint-SpoolManager"
