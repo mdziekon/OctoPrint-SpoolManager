@@ -13,12 +13,12 @@ jobs:
     steps:
       - uses: actions/stale@v4
         with:
-          exempt-issue-labels: 'status: analysing,status: inNextRelease,status: inProgress,status: wontfix'
+          exempt-issue-labels: 'status: analysis,status: in-next-release,status: in-progress,status: wontfix'
 
           days-before-issue-stale: 30
           stale-issue-message: 'This issue has been automatically marked for closing, because it has not had activity in 30 days. It will be closed if no further activity occurs in 10 days.'
-          stale-issue-label:  'status: markedForAutoClose'
+          stale-issue-label:  'status: marked-for-autoclose'
 
           days-before-issue-close: 10
           close-issue-message: 'This issue was closed, because it has been already marked for 10 days with no activity.'
-          close-issue-label: 'status: closedByBot'
+          close-issue-label: 'status: closed-by-bot'
