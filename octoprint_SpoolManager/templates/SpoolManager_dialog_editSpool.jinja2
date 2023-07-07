@@ -530,14 +530,39 @@
                     <button type="button" class="btn btn-warning" data-bind="visible: spoolDialog.isExistingSpool,
                                                                              click: spoolDialog.copySpoolItem" >Copy</button>
                     <!-- visible: spoolDialog.spoolItemForEditing.selectedFromQRCode() == true,                        -->
+
                     <!-- ko if: spoolDialog.spoolItemForEditing.databaseId -->
-                    <select class="span2" style="margin-bottom: 0px" data-bind="optionsCaption: 'Choose...',
-                                                                                value: spoolDialog.spoolItemForEditing.selectedForTool,
-                                                                                options: spoolDialog.allToolIndices,
-                                                                                optionsText: function(item) {
-                                                                                                return 'Tool '+ item
-                                                                                                }"></select>
-                    <button class="btn btn-info" data-bind="click: spoolDialog.selectSpoolItemForPrinting" style="text-align:right">Select for Printing</button>
+                        <!-- ko if: spoolDialog.allToolIndices().length > 1 -->
+                            <div class="btn-group dropup">
+                                <a class="btn btn-info dropdown-toggle" data-toggle="dropdown" href="#">
+                                    Select for printing...
+                                    <span class="caret"></span>
+                                </a>
+                                <ul
+                                    class="dropdown-menu"
+                                    data-bind="foreach: spoolDialog.allToolIndices"
+                                >
+                                    <li>
+                                        <a
+                                            tabindex="-1"
+                                            href="#"
+                                            data-bind="click: function () { $parent.spoolDialog.selectSpoolItemForPrintingOnTool({ toolIdx: $data }); }"
+                                        >
+                                            Tool #<span data-bind="text: $data"></span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        <!-- /ko -->
+                        <!-- ko if: spoolDialog.allToolIndices().length == 1 -->
+                            <button
+                                class="btn btn-info"
+                                type="button"
+                                data-bind="click: function () { spoolDialog.selectSpoolItemForPrintingOnTool({ toolIdx: spoolDialog.allToolIndices()[0] }); }"
+                            >
+                                Select for printing (tool #<span data-bind="text: spoolDialog.allToolIndices()[0]"></span>)
+                            </button>
+                        <!-- /ko -->
                     <!-- /ko -->
 
                     <button class="btn btn-info" data-bind="visible: spoolDialog.isExistingSpool()==false,

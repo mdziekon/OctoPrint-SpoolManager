@@ -652,10 +652,12 @@ function SpoolManagerEditSpoolDialog(props) {
         self.closeDialogHandler(true);
     };
 
-    self.selectSpoolItemForPrinting = function() {
+    self.selectSpoolItemForPrintingOnTool = (params) => {
+        const { toolIdx } = params;
+
         self.spoolItemForEditing.isSpoolVisible(false);
         self.spoolDialog.modal('hide');
-        self.closeDialogHandler(false, "selectSpoolForPrinting", self.spoolItemForEditing);
+        self.closeDialogHandler(false, "selectSpoolForPrinting", { spoolItem: self.spoolItemForEditing, toolIdx });
     };
 
     self.selectAndCopyTemplateSpool = function() {
