@@ -30,7 +30,7 @@ function SpoolManagerEditSpoolDialog(props) {
     ///////////////////////////////////////////////////////////////////////////////////////////////// Instance Variables
     self.spoolDialog = null;
     self.templateSpoolDialog = null;
-    self.closeDialogHandler = null;
+    self.closeDialogListenerCallback = null;
     self.spoolItemForEditing = null;
     self.templateSpools = ko.observableArray([]);
     self.noteEditor = null;
@@ -215,6 +215,13 @@ function SpoolManagerEditSpoolDialog(props) {
             // self.spoolItemForEditing["noteDeltaFormat"]("");
             // self.spoolItemForEditing["noteHtml"]("");
         }
+    };
+
+    self._closeSpoolEditing = (closeCallbackParams) => {
+        self.spoolItemForEditing.isSpoolVisible(false);
+        self.spoolDialog.modal('hide');
+
+        self.closeDialogListenerCallback(closeCallbackParams);
     };
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////// PUBLIC
@@ -539,7 +546,7 @@ function SpoolManagerEditSpoolDialog(props) {
         const { onCloseDialog } = params;
 
         self.autoUpdateEnabled = false;
-        self.closeDialogHandler = onCloseDialog;
+        self.closeDialogListenerCallback = onCloseDialog;
 
         self.allToolIndices([]);
 
@@ -624,10 +631,7 @@ function SpoolManagerEditSpoolDialog(props) {
             );
         }
 
-        self.spoolItemForEditing.isSpoolVisible(false);
-        self.spoolDialog.modal('hide');
-
-        self.closeDialogHandler({
+        self._closeSpoolEditing({
             shouldTableReload: true,
             event: {
                 type: "save",
@@ -653,10 +657,7 @@ function SpoolManagerEditSpoolDialog(props) {
             );
         }
 
-        self.spoolItemForEditing.isSpoolVisible(false);
-        self.spoolDialog.modal('hide');
-
-        self.closeDialogHandler({
+        self._closeSpoolEditing({
             shouldTableReload: true,
         });
     };
@@ -664,10 +665,7 @@ function SpoolManagerEditSpoolDialog(props) {
     self.selectSpoolItemForPrintingOnTool = (params) => {
         const { toolIdx } = params;
 
-        self.spoolItemForEditing.isSpoolVisible(false);
-        self.spoolDialog.modal('hide');
-
-        self.closeDialogHandler({
+        self._closeSpoolEditing({
             shouldTableReload: false,
             event: {
                 type: "selectSpoolForPrinting",
