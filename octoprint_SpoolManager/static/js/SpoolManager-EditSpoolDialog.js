@@ -221,7 +221,7 @@ function SpoolManagerEditSpoolDialog(props) {
         self.spoolItemForEditing.isSpoolVisible(false);
         self.spoolDialog.modal('hide');
 
-        self.closeDialogListenerCallback(closeCallbackParams);
+        self.closeDialogListenerCallback?.(closeCallbackParams);
     };
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////// PUBLIC
