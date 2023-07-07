@@ -108,11 +108,18 @@ $(function() {
         let hasInitializedSpoolsSelector = false;
 
         //////////////////////////////////////////////////////////////////////////////////////////////// HELPER FUNCTION
-        const handleSpoolDialogClose = (shouldTableReload, specialAction, currentSpoolItem) => {
-            if (specialAction === "selectSpoolForPrinting") {
-                const spoolToolIdx = currentSpoolItem.selectedForTool() ?? -1;
+        const handleSpoolDialogClose = (params) => {
+            const {
+                shouldTableReload,
+                event,
+            } = params;
 
-                self.selectSpoolForSidebar(spoolToolIdx, currentSpoolItem);
+            if (event && event.type) {
+                if (event.type === "selectSpoolForPrinting") {
+                    const { spoolItem, toolIdx } = event;
+
+                    self.selectSpoolForSidebar(toolIdx, spoolItem);
+                }
             }
 
             if (shouldTableReload == true) {
