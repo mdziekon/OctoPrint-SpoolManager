@@ -626,7 +626,13 @@ function SpoolManagerEditSpoolDialog(props) {
 
         self.spoolItemForEditing.isSpoolVisible(false);
         self.spoolDialog.modal('hide');
-        self.closeDialogHandler(true, "save");
+
+        self.closeDialogHandler({
+            shouldTableReload: true,
+            event: {
+                type: "save",
+            },
+        });
     };
 
     self.deleteSpoolItem = async function() {
@@ -649,7 +655,10 @@ function SpoolManagerEditSpoolDialog(props) {
 
         self.spoolItemForEditing.isSpoolVisible(false);
         self.spoolDialog.modal('hide');
-        self.closeDialogHandler(true);
+
+        self.closeDialogHandler({
+            shouldTableReload: true,
+        });
     };
 
     self.selectSpoolItemForPrintingOnTool = (params) => {
@@ -657,7 +666,15 @@ function SpoolManagerEditSpoolDialog(props) {
 
         self.spoolItemForEditing.isSpoolVisible(false);
         self.spoolDialog.modal('hide');
-        self.closeDialogHandler(false, "selectSpoolForPrinting", { spoolItem: self.spoolItemForEditing, toolIdx });
+
+        self.closeDialogHandler({
+            shouldTableReload: false,
+            event: {
+                type: "selectSpoolForPrinting",
+                spoolItem: self.spoolItemForEditing,
+                toolIdx,
+            },
+        });
     };
 
     self.selectAndCopyTemplateSpool = function() {
