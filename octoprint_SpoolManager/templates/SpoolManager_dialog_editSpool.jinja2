@@ -48,8 +48,16 @@
                 </span>
             </div>
             <div class="myspan8">
-                <span data-bind="visible: spoolDialog.isExistingSpool() == false"><h2>NEW </h2></span>
-                <span><h2 data-bind="text: spoolDialog.spoolItemForEditing.displayName"></h2></span>
+                <h2>
+                    <span
+                        class="label label-info"
+                        style="margin-right: 5px; font-size: inherit; line-height: inherit;"
+                        data-bind="visible: spoolDialog.isExistingSpool() == false"
+                    >
+                        NEW
+                    </span>
+                    <span data-bind="text: spoolDialog.spoolItemForEditing.displayName"></span>
+                </h2>
             </div>
 
 <!-- Customize Field visiblity
