@@ -524,9 +524,6 @@
                     <button type="button" class="btn btn-danger" data-bind="visible: spoolDialog.isExistingSpool,
                                                                             disable: printerStateViewModel.isPrinting(),
                                                                             click: spoolDialog.deleteSpoolItem" >Delete</button>
-                    <div data-bind="visible: printerStateViewModel.isPrinting()">
-                        <small>Deletion during printing is not possible</small>
-                    </div>
                     <button type="button" class="btn btn-warning" data-bind="visible: spoolDialog.isExistingSpool,
                                                                              click: spoolDialog.copySpoolItem" >Copy</button>
                     <!-- visible: spoolDialog.spoolItemForEditing.selectedFromQRCode() == true,                        -->
@@ -568,6 +565,9 @@
                     <button class="btn btn-info" data-bind="visible: spoolDialog.isExistingSpool()==false,
                                                             click: spoolDialog.selectAndCopyTemplateSpool" style="text-align:right">Copy from Template...</button>
 
+                    <div data-bind="visible: printerStateViewModel.isPrinting()" class="muted" style="margin-top: 10px;">
+                        <small>Deletion during printing is not possible</small>
+                    </div>
                 </span>
                 <span class="span4 text-right">
 <!--                        data-bind="click: spoolDialog.closeSpoolItemDialog"-->
