@@ -63,6 +63,10 @@ Changing between each release is done via the "Software Update section" in the s
 Hint: "Easy-switching" is possible with OctoPrint-Version 1.8.0 (see https://github.com/OctoPrint/OctoPrint/issues/4238).
 At the meantime you need to uninstall and install the version you like from the selected channel...or stay in one channel ;-)
 
+## Requirements
+
+- Python 3.7+
+
 ## Versions
 
 See [Releases](https://github.com/mdziekon/OctoPrint-SpoolManager/releases/)
