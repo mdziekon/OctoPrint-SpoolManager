@@ -1217,7 +1217,7 @@ $(function() {
             }
         }
 
-        self.onAfterTabChange = async function(current, previous) {
+        self.onAfterTabChange = function(current, previous) {
             const tabHashCode = window.location.hash;
             // QR-Code-Call: We can only contain -spoolId on the very first page
             if (!tabHashCode.includes("#tab_plugin_SpoolManager-spoolId")) {
@@ -1237,40 +1237,46 @@ $(function() {
                 // not doing this while printing
                 return;
             }
-            // - Load SpoolItem from Backend
-            // - Open SpoolItem
-            const commitCurrentSpoolValues = false;
 
-            const queryResult = await self.apiClient.callSelectSpool({
-                toolIndex: 0,
-                spoolDbId: selectedSpoolId,
-                shouldCommitCurrentSpoolProgress: commitCurrentSpoolValues,
-            });
+            // Note: ViewModel callbacks like `onAfterTabChange` cannot be async
+            // since OctoPrint does not recognize async function as callable functions.
+            // Therefore, wrap async execution into an IIFE to leverage async/await syntax.
+            (async () => {
+                // - Load SpoolItem from Backend
+                // - Open SpoolItem
+                const commitCurrentSpoolValues = false;
 
-            if (!queryResult.isSuccess) {
-                return self.showPopUp(
-                    "error",
-                    'Switch spool',
-                    'An unknown error occurred while requesting data',
-                    true,
-                );
-            }
+                const queryResult = await self.apiClient.callSelectSpool({
+                    toolIndex: 0,
+                    spoolDbId: selectedSpoolId,
+                    shouldCommitCurrentSpoolProgress: commitCurrentSpoolValues,
+                });
 
-            const responseData = queryResult.payload.response;
-            const spoolData = responseData.selectedSpool;
+                if (!queryResult.isSuccess) {
+                    return self.showPopUp(
+                        "error",
+                        'Switch spool',
+                        'An unknown error occurred while requesting data',
+                        true,
+                    );
+                }
 
-            // Select the SpoolManager tab
-            $('a[href="#tab_plugin_SpoolManager"]').tab('show');
+                const responseData = queryResult.payload.response;
+                const spoolData = responseData.selectedSpool;
 
-            if (spoolData == null) {
-                return;
-            }
+                // Select the SpoolManager tab
+                $('a[href="#tab_plugin_SpoolManager"]').tab('show');
 
-            const spoolItem = self.spoolDialog.createSpoolItemForTable(spoolData);
+                if (spoolData == null) {
+                    return;
+                }
 
-            spoolItem.selectedFromQRCode(true);
-            self.selectedSpoolsForSidebar()[0](spoolItem);
-            self.showSpoolDialogAction(spoolItem);
+                const spoolItem = self.spoolDialog.createSpoolItemForTable(spoolData);
+
+                spoolItem.selectedFromQRCode(true);
+                self.selectedSpoolsForSidebar()[0](spoolItem);
+                self.showSpoolDialogAction(spoolItem);
+            })();
         }
     }
 
