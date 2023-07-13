@@ -881,7 +881,7 @@ class DatabaseManager(object):
 
 	def loadSpool(self, databaseId, withReusedConnection=False):
 		def databaseCallMethode():
-			return SpoolModel.get_or_none(databaseId)
+			return SpoolModel.get_or_none(SpoolModel.databaseId == int(databaseId))
 
 		return self._handleReusableConnection(databaseCallMethode, withReusedConnection, "loadSpool")
 
