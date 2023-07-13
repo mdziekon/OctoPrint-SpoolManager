@@ -87,6 +87,19 @@ See [Releases](https://github.com/mdziekon/OctoPrint-SpoolManager/releases/)
 
 # Development
 
+## Preparing environment
+
+```
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+## Running tests
+
+```
+python3 -m unittest discover -s octoprint_SpoolManager -t .
+```
+
 ## Events
 Plugin sends the following custom events to the eventbus like this:
 
