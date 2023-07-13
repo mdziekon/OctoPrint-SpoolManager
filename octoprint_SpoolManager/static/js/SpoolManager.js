@@ -1228,6 +1228,13 @@ $(function() {
             selectedSpoolId = parseInt(selectedSpoolId);
             console.info('Loading spool: '+selectedSpoolId);
 
+            // Note: Due to OctoPrint initialization race condition
+            // (onAfterTabChange called before spools are loaded),
+            // in most cases this comparison does not work correctly.
+            // This code path is triggered only when selecting spool by QR Code via API,
+            // where the API call already selects the spool for us.
+            // TODO: Remove spool selection call from here, and instead simply show
+            // the spool edit modal. To achieve that, a "getSpoolById" API call should be added.
             const spoolCurrentToolId = self.getSpoolItemSelectedTool(selectedSpoolId);
             if (spoolCurrentToolId !== null) {
                 alert('This spool is already selected for tool ' + spoolCurrentToolId + '!');
