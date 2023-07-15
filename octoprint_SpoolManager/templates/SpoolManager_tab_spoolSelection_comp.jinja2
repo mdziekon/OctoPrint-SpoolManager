@@ -133,6 +133,10 @@
             <i class='fa fa-2xl fa-spinner fa-spin' ></i>
         </div>
 
+        <div data-bind="visible: !isLoadingSpoolsSelectorData() && allSpools().length == 0" style="margin: 16px; text-align: center;">
+            <small class="muted">No spools to display...</small>
+        </div>
+
         <table
             data-bind="visible: !isLoadingSpoolsSelectorData() && allSpools().length > 0"
             class="table table-hover table-bordered"
