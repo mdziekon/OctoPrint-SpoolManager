@@ -30,13 +30,14 @@
                 <!-- /ko -->
 
             </div>
-            <hr/>
+            <hr style="margin: 10px 0;"/>
 
             <spm-select-spool-table params="allSpoolsKOArray: allSpoolsForSidebar,
                                             allMaterialsKOArray: spoolDialog.allMaterials,
                                             allVendorsKOArray: spoolDialog.allVendors,
                                             allColorsKOArray: spoolDialog.allColors,
-                                            selectSpoolFunction: sidebarSelectSpoolFromDialog
+                                            selectSpoolFunction: sidebarSelectSpoolFromDialog,
+                                            isLoadingSpoolsSelectorData: isLoadingSpoolsSelectorData
                                             "></spm-select-spool-table>
         </div>
     </div>

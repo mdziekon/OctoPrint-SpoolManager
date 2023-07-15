@@ -107,6 +107,8 @@ $(function() {
 
         let hasInitializedSpoolsSelector = false;
 
+        self.isLoadingSpoolsSelectorData = ko.observable(false);
+
         //////////////////////////////////////////////////////////////////////////////////////////////// HELPER FUNCTION
         const handleSpoolDialogClose = (params) => {
             const {
@@ -539,7 +541,7 @@ $(function() {
             self.selectSpoolForSidebar(toolIndex, null);
         }
 
-        const loadSpoolSelectorData = async function () {
+        const _loadSpoolSelectorDataCore = async function () {
             const fetchSpoolsQueryParams = {
                 filterName: "all",
                 from: 0,
@@ -573,6 +575,15 @@ $(function() {
                 return self.spoolDialog.createSpoolItemForTable(spoolData);
             });
             self.allSpoolsForSidebar(allSpoolItems);
+        };
+        const loadSpoolSelectorData = async function () {
+            self.isLoadingSpoolsSelectorData(true);
+
+            const result = await _loadSpoolSelectorDataCore();
+
+            self.isLoadingSpoolsSelectorData(false);
+
+            return result;
         };
 
         const updateAvailableSpoolSlots = () => {
