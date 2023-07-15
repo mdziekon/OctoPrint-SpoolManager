@@ -107,6 +107,8 @@ $(function() {
 
         let hasInitializedSpoolsSelector = false;
 
+        self.isLoadingSpoolsSelectorData = ko.observable(false);
+
         //////////////////////////////////////////////////////////////////////////////////////////////// HELPER FUNCTION
         const handleSpoolDialogClose = (params) => {
             const {

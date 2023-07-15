@@ -62,6 +62,7 @@ function SpoolSelectionTableComp() {
         self.allColors = params.allColorsKOArray;
 
         self.selectSpoolFunction = params.selectSpoolFunction;
+        self.isLoadingSpoolsSelectorData = params.isLoadingSpoolsSelectorData;
 
         ////////////////////////////////////////////////////////////////////// internal field variables
 
