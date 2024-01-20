@@ -264,9 +264,8 @@
                                                                                                          spoolDialog.spoolItemForEditing.displayName(),
                                                                                                          'htmlView')" target="_new">
                                                 <img loading="lazy" class="qr-code" alt="QR Code" data-bind="attr: $root.generateQRCodeImageSourceAttribute(spoolDialog.spoolItemForEditing.databaseId(),
-                                                                                                                                                            spoolDialog.spoolItemForEditing.displayName())">
-                                            </a>
-                                        </div>
+                                                                                                                                                            spoolDialog.spoolItemForEditing.displayName())"></a>
+                                            </div>
                                     </div>
                                 </div>
                                 <div class="span4">
@@ -274,6 +273,9 @@
                                     <div class="">
                                         <input title="Used for QR-Code generation" data-bind="textInput: spoolDialog.spoolItemForEditing.databaseId"  type="text" class="input-mini text-right"  disabled="true"/>
                                     </div>
+                                    <a data-bind="attr: $root.generateQRCodeImageSourceAttribute(spoolDialog.spoolItemForEditing.databaseId(),
+                                                             spoolDialog.spoolItemForEditing.displayName(),
+                                                             'htmlView')" target="_new">Print Label</a>
                                 </div>
                             </div>
                         </div>
