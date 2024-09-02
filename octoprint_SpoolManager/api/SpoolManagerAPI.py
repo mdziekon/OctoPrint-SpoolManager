@@ -603,11 +603,40 @@ class SpoolManagerAPI(octoprint.plugin.BlueprintPlugin):
 	def generateSpoolQRCodeHTMLView(self, databaseId):
 		htmlContent = ""
 		spoolModel = self._databaseManager.loadSpool(databaseId);
+		if spoolModel.material is None:
+			material = "N/A"
+		else:
+			material = spoolModel.material
 		if (spoolModel is not None):
 			self._logger.info("Generate HTML iew for QR-Code")
 			htmlContent = \
-						"<h3>Database Id: " + str(databaseId) + "</h3>" \
-						"<h3>Spoolname: " + spoolModel.displayName + "</h3>" \
+							"<style> " \
+							"body { "\
+							"	display: flex; " \
+							"	flex-direction: column;"\
+							"	align-items: center;"\
+							"	justify-content: center;"\
+							"	text-align: center;"\
+							"}"\
+							"img {"\
+  							"	max-width: 100%; "\
+							"}"\
+							"h2 {"\
+							"	font-size: 4em;"\
+							"}" \
+							"h3 {"\
+							"	font-size: 2em;"\
+							"}" \
+							"div {" \
+							"	margin-top: 10px;" \
+							"}" \
+						"</style> " \
+						"<div>" \
+						"<h2>Name: " + spoolModel.displayName + "</h2>" \
+						"<h2> Id: " + str(databaseId) + "</h2>" \
+						"<h3> Material: " + material + "</h3>" \
+						"<h3> Color: " + spoolModel.colorName + "</h3>" \
+						"</div>" \
 						"<img loading='lazy' src='/plugin/SpoolManager/generateQRCode/"+str(databaseId)+"' />"
 		else:
 			htmlContent = "<h3>Spool with database Id not found</h3>"
